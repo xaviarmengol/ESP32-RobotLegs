@@ -16,7 +16,7 @@ void LegKinematics::defineGeometry(int distanceBetweenJoints, int topSegmentLent
 LegKinematics::~LegKinematics() {
 }
 
-bool LegKinematics::calcAnglesHasSolution(int relativeXLowJoint, int relativeYLowJoint, int& outAngleLeftDeg, int& outAngleRightDeg) {
+bool LegKinematics::calcAnglesHasSolution(int relativeXLowJoint, int relativeYLowJoint) {
 
     _hasSolution = _leftSide.calcAngleHasSolution(relativeXLowJoint, relativeYLowJoint);
     _hasSolution &= _rightSide.calcAngleHasSolution(relativeXLowJoint, relativeYLowJoint);

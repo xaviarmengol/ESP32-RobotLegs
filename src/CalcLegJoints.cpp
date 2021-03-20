@@ -163,14 +163,14 @@ bool CalcLegJoints::_circle_circle_intersection(int x0, int y0, int r0,
                                 static_cast<double>(x1),static_cast<double>(y1),static_cast<double>(r1),
                                 xid, yid, xi_primed, yi_primed);
 
-    printf("Calc: x0=%F, y0=%F, r0=%F, x1=%F, y1=%F, r1=%F :\n",
-          static_cast<double>(x0), static_cast<double>(y0), static_cast<double>(r0), static_cast<double>(x1),static_cast<double>(y1),static_cast<double>(r1));
+    //printf("Calc: x0=%F, y0=%F, r0=%F, x1=%F, y1=%F, r1=%F :\n",
+    //      static_cast<double>(x0), static_cast<double>(y0), static_cast<double>(r0), static_cast<double>(x1),static_cast<double>(y1),static_cast<double>(r1));
 
     //Serial.println(xid);
     //Serial.println(yid);
 
-    printf("Sol1: x=%F, y=%F \n", xid, yid);
-    printf("Sol2: x=%F, y=%F \n", xi_primed, yi_primed);
+    //printf("Sol1: x=%F, y=%F \n", xid, yid);
+    //printf("Sol2: x=%F, y=%F \n", xi_primed, yi_primed);
     
     xi = static_cast<int>(xid);
     yi = static_cast<int>(yid);

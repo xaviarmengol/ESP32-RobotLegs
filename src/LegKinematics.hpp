@@ -17,7 +17,7 @@ private:
 public:
     LegKinematics();
     void defineGeometry(int distanceBetweenJoints, int topSegmentLenth, int bottomSegmentLenth);
-    bool calcAnglesHasSolution(int relativeXLowJoint, int relativeYLowJoint, int& outAngleLeftDeg, int& outAngleRightDeg);
+    bool calcAnglesHasSolution(int relativeXLowJoint, int relativeYLowJoint);
     bool hasSolution();
     int leftLastAngle();
     int rightLastAngle();
