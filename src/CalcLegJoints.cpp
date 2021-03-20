@@ -49,7 +49,7 @@ bool CalcLegJoints::calcAngleHasSolution(int xLowJoint, int yLowJoint) {
     if (_hasSolution) {
 
         if (_isLeftSide) {
-            if (_xCenterJoint1 <= _xTopJoint) {
+            if (_xCenterJoint1 <= _xCenterJoint2) {
                 _xCenterJoint = _xCenterJoint1; 
                 _yCenterJoint = _yCenterJoint1;
             } else {
@@ -57,7 +57,7 @@ bool CalcLegJoints::calcAngleHasSolution(int xLowJoint, int yLowJoint) {
                 _yCenterJoint = _yCenterJoint2;
             }
         } else {
-            if (_xCenterJoint1 >= _xTopJoint) {
+            if (_xCenterJoint1 >= _xCenterJoint2) {
                 _xCenterJoint = _xCenterJoint1; 
                 _yCenterJoint = _yCenterJoint1;
             } else {
