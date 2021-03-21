@@ -5,6 +5,8 @@ CalcLegJoints::CalcLegJoints(int xTopJoint, int yTopJoint, int topSegmentLenth, 
 
     _isLeftSide = isLeftSide;
 
+    // Comment precision
+
     _xTopJoint = xTopJoint;
     _yTopJoint = yTopJoint;
     _topSegmentLenth = topSegmentLenth;
