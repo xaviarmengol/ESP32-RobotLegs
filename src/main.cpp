@@ -4,6 +4,10 @@
 #include "ServosLeg.hpp"
 #include "PathGenerator.hpp"
 
+// Try this: https://wired.chillibasket.com/2020/05/servo-trajectory/
+
+
+
 // Test:
 //CalcLegJoints leftSide(0, 0, 50, 50, true);
 //bool hasSolL = leftSide.calcAngleHasSolution(0, -71); // -> Angle 44 (-35, -35)
