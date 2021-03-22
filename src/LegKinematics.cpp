@@ -23,6 +23,8 @@ bool LegKinematics::calcAnglesHasSolution(double relativeXLowJoint, double relat
 
     _leftAngleDeg = _leftSide.angleLastSolDeg();
     _rightAngleDeg = _rightSide.angleLastSolDeg();
+
+    return(_hasSolution);
 }
 
 bool LegKinematics::hasSolution(){
