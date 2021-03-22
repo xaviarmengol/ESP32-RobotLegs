@@ -3,28 +3,28 @@
 
 class LegKinematics {
 private:
-    int _topSegmentLengh = 0;
-    int _bottomSegmentLengh = 0;
-    int _distanceBetweenJoints = 0;
+    double _topSegmentLengh = 0;
+    double _bottomSegmentLengh = 0;
+    double _distanceBetweenJoints = 0;
     bool _hasSolution;
 
-    int _leftAngleDeg;
-    int _rightAngleDeg;
+    double _leftAngleDeg;
+    double _rightAngleDeg;
 
     CalcLegJoints _leftSide;
     CalcLegJoints _rightSide;
 
 public:
     LegKinematics();
-    void defineGeometry(int distanceBetweenJoints, int topSegmentLenth, int bottomSegmentLenth);
-    bool calcAnglesHasSolution(int relativeXLowJoint, int relativeYLowJoint);
+    void defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth);
+    bool calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint);
     bool hasSolution();
-    int leftLastAngle();
-    int rightLastAngle();
+    double leftLastAngle();
+    double rightLastAngle();
 
-    bool calcLowJoint(int leftAngleDeg, int rightAngleDeg);
-    int xLowJoint();
-    int yLowJoint();
+    bool calcLowJoint(double leftAngleDeg, double rightAngleDeg);
+    double xLowJoint();
+    double yLowJoint();
 
     ~LegKinematics();
 };

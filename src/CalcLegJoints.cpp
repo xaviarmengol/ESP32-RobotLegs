@@ -1,11 +1,9 @@
 #include "CalcLegJoints.hpp"
 #include "CircleCircleIntersection.hpp"
 
-CalcLegJoints::CalcLegJoints(int xTopJoint, int yTopJoint, int topSegmentLenth, int bottomSegmentLenth, bool isLeftSide) {
+CalcLegJoints::CalcLegJoints(double xTopJoint, double yTopJoint, double topSegmentLenth, double bottomSegmentLenth, bool isLeftSide) {
 
     _isLeftSide = isLeftSide;
-
-    // Comment precision
 
     _xTopJoint = xTopJoint;
     _yTopJoint = yTopJoint;
@@ -19,7 +17,7 @@ CalcLegJoints::CalcLegJoints(int xTopJoint, int yTopJoint, int topSegmentLenth, 
 CalcLegJoints::~CalcLegJoints() {
 }
 
-int CalcLegJoints::bottomSegmentLenth() {
+double CalcLegJoints::bottomSegmentLenth() {
     return(_bottomSegmentLenth);
 }
 
@@ -34,15 +32,15 @@ void CalcLegJoints::test () {
 }
 
 
-bool CalcLegJoints::calcAngleHasSolution(int xLowJoint, int yLowJoint) {
+bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
-    int _xCenterJoint1;
-    int _yCenterJoint1;
+    double _xCenterJoint1;
+    double _yCenterJoint1;
 
-    int _xCenterJoint2;
-    int _yCenterJoint2;
+    double _xCenterJoint2;
+    double _yCenterJoint2;
 
-    _hasSolution = _circle_circle_intersection(_xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth, _xCenterJoint1, _yCenterJoint1, _xCenterJoint2, _yCenterJoint2);
+    _hasSolution = circle_circle_intersection(_xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth, _xCenterJoint1, _yCenterJoint1, _xCenterJoint2, _yCenterJoint2);
 
     //printf("INT: x0=%i, y0=%i, r0=%i, x1=%i, y1=%i, r1=%i :\n",
     //      _xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth);
@@ -69,7 +67,7 @@ bool CalcLegJoints::calcAngleHasSolution(int xLowJoint, int yLowJoint) {
         }
 
         _alfaRad = asin(static_cast<double>((_yTopJoint - _yCenterJoint))/static_cast<double>(_topSegmentLenth));
-        _alfaDeg = static_cast<int>(_alfaRad * RAD_TO_DEG);
+        _alfaDeg = _alfaRad * RAD_TO_DEG;
     }
 
     return(_hasSolution);
@@ -79,16 +77,16 @@ bool CalcLegJoints::hasSolution () {
     return(_hasSolution);
 }
 
-int CalcLegJoints::angleLastSolDeg() {
+double CalcLegJoints::angleLastSolDeg() {
     return (_alfaDeg);
 
 }
 
 
-void CalcLegJoints::calcCenterJointFromAngleDeg(int angleDeg) {
+void CalcLegJoints::calcCenterJointFromAngleDeg(double angleDeg) {
     
-    int xDelta = static_cast<int>(cos(angleDeg * DEG_TO_RAD) * static_cast<double> (_topSegmentLenth));
-    int yDelta = static_cast<int>(sin(angleDeg * DEG_TO_RAD) * static_cast<double> (_topSegmentLenth));
+    double xDelta = cos(angleDeg * DEG_TO_RAD) * _topSegmentLenth;
+    double yDelta = sin(angleDeg * DEG_TO_RAD) * _topSegmentLenth;
 
     if (_isLeftSide) {
         _xCenterJoint = _xTopJoint - xDelta; 
@@ -99,28 +97,30 @@ void CalcLegJoints::calcCenterJointFromAngleDeg(int angleDeg) {
     }
 }
 
-int CalcLegJoints::xCenterJointLastSol() {
+double CalcLegJoints::xCenterJointLastSol() {
     return(_xCenterJoint);
 }
 
-int CalcLegJoints::yCenterJointLastSol() {
+double CalcLegJoints::yCenterJointLastSol() {
     return(_yCenterJoint);
 }
 
 
-bool CalcLegJoints::calcLowJointHasSolution(CalcLegJoints &otherLeg, int thisAngleDeg, int otherAngleDeg) {
+bool CalcLegJoints::calcLowJointHasSolution(CalcLegJoints &otherLeg, double thisAngleDeg, double otherAngleDeg) {
 
     bool hasSolution;
 
-    int x1;
-    int y1;
-    int x2;
-    int y2;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
 
     this->calcCenterJointFromAngleDeg(thisAngleDeg);
     otherLeg.calcCenterJointFromAngleDeg(otherAngleDeg);
 
-    hasSolution = _circle_circle_intersection(_xCenterJoint, _yCenterJoint, _bottomSegmentLenth,
+    //http://paulbourke.net/geometry/circlesphere/
+
+    hasSolution = circle_circle_intersection(_xCenterJoint, _yCenterJoint, _bottomSegmentLenth,
                                 otherLeg.xCenterJointLastSol(), otherLeg.yCenterJointLastSol(), otherLeg.bottomSegmentLenth(),
                                  x1, y1, x2, y2);
 
@@ -139,46 +139,13 @@ bool CalcLegJoints::calcLowJointHasSolution(CalcLegJoints &otherLeg, int thisAng
 }
 
 
-int CalcLegJoints::xLowJointLastSol() {
+double CalcLegJoints::xLowJointLastSol() {
     return(_xLowJoint);
 }
 
-int CalcLegJoints::yLowJointLastSol() {
+double CalcLegJoints::yLowJointLastSol() {
     return(_yLowJoint);
 }
 
 
-//http://paulbourke.net/geometry/circlesphere/
 
-bool CalcLegJoints::_circle_circle_intersection(int x0, int y0, int r0,
-                               int x1, int y1, int r1,
-                               int &xi, int &yi,
-                               int &xi_prime, int &yi_prime) {
-    double xid;
-    double yid;
-    double xi_primed;
-    double yi_primed;
-
-    int hasSol;
-
-    hasSol = circle_circle_intersection(static_cast<double>(x0), static_cast<double>(y0), static_cast<double>(r0),
-                                static_cast<double>(x1),static_cast<double>(y1),static_cast<double>(r1),
-                                xid, yid, xi_primed, yi_primed);
-
-    //printf("Calc: x0=%F, y0=%F, r0=%F, x1=%F, y1=%F, r1=%F :\n",
-    //      static_cast<double>(x0), static_cast<double>(y0), static_cast<double>(r0), static_cast<double>(x1),static_cast<double>(y1),static_cast<double>(r1));
-
-    //Serial.println(xid);
-    //Serial.println(yid);
-
-    //printf("Sol1: x=%F, y=%F \n", xid, yid);
-    //printf("Sol2: x=%F, y=%F \n", xi_primed, yi_primed);
-    
-    xi = static_cast<int>(xid);
-    yi = static_cast<int>(yid);
-    xi_prime = static_cast<int>(xi_primed);
-    yi_prime = static_cast<int>(yi_primed);
-
-    if (hasSol == 1) return (true);
-    else return(false);
-}

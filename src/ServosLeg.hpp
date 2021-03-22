@@ -1,8 +1,9 @@
 #pragma once
 #include "ServosLeg.hpp"
 
-#include "LegKinematics.hpp"
 #include <ESP32Servo.h>
+#include "LegKinematics.hpp"
+
 
 
 class ServosLeg {
@@ -11,12 +12,13 @@ private:
     Servo _servoRight;
     LegKinematics* _ptrLeg;
 
-    bool _moveServos(const int angleLeftDeg, const int angleRightDeg, const bool hasSolution);
+    bool _moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution);
+    double _map_double(double x, double in_min, double in_max, double out_min, double out_max);
 
 public:
     ServosLeg();
     bool attachPins(const int pinLeft, const int pinRight, LegKinematics* leg);
-    bool moveToPoint(const int relativeXLowJoint, const int relativeYLowJoint);
-    bool calibrateMoveToAngles(const int angleLeft, const int angleRight, bool forceServo=false);
+    bool moveToPoint(const double relativeXLowJoint, const double relativeYLowJoint);
+    bool calibrateMoveToAngles(const double angleLeft, const double angleRight, bool forceServo=false);
     ~ServosLeg();
 };

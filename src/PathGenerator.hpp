@@ -11,13 +11,13 @@ private:
 
     int _periodMs;
     int _currentPathPoint = 0;
-    int _startingPathPoint = 0;
+    double _startingPathPoint = 0;
 
     int _stepsInCurrentSegment = 0;
 
-    int _pathPoints[4][MAX_POINTS]; // X, Y, Vel, Type
+    double _pathPoints[4][MAX_POINTS]; // X, Y, Vel, Type
     int _numPathPoints = 0;
-    int _currentPoint[2];
+    double _currentPoint[2];
     
     void _calcSegmentDeltaMovements();
 
@@ -27,7 +27,7 @@ private:
 public:
     PathGenerator(int period);
     ~PathGenerator();
-    bool addPathPoint(int x, int y, int v, int type = 0);
+    bool addPathPoint(double x, double y, double v, double type = 0);
 
     // Calc the next Point every Period.
     void calcNextPoint(int& outXNextPoint, int& outYNextPoint);
@@ -44,7 +44,7 @@ void PathGenerator::setStartingPathPoint(int startingPathPoint) {
     _currentPathPoint = _startingPathPoint;
 }
 
-bool PathGenerator::addPathPoint(int x, int y, int v, int type) {
+bool PathGenerator::addPathPoint(double x, double y, double v, double type) {
     bool allOk = false;
 
     if (_numPathPoints<MAX_POINTS) {
@@ -90,11 +90,11 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
 
     int nextPathPoint = _nextPathPoint(_currentPathPoint);
 
-    int XPathPoint = _pathPoints[0][_currentPathPoint];
-    int YPathPoint = _pathPoints[1][_currentPathPoint];
+    double XPathPoint = _pathPoints[0][_currentPathPoint];
+    double YPathPoint = _pathPoints[1][_currentPathPoint];
 
-    int XNextPathPoint = _pathPoints[0][nextPathPoint];
-    int YNextPathPoint = _pathPoints[1][nextPathPoint];
+    double XNextPathPoint = _pathPoints[0][nextPathPoint];
+    double YNextPathPoint = _pathPoints[1][nextPathPoint];
 
     double deltaX = static_cast<double>(XNextPathPoint - XPathPoint);
     double deltaY = static_cast<double>(YNextPathPoint - YPathPoint);
@@ -122,8 +122,8 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     Serial.print("deltaYTotal: ");Serial.println(deltaYTotal);
     */
 
-    int XNextPoint = XPathPoint + static_cast<int>(deltaXTotal);
-    int YNextPoint = YPathPoint + static_cast<int>(deltaYTotal);
+    double XNextPoint = XPathPoint + deltaXTotal;
+    double YNextPoint = YPathPoint + deltaYTotal;
 
     //Serial.print("XNextPoint: ");Serial.println(XNextPoint);
     //Serial.print("YNextPoint: ");Serial.println(YNextPoint);

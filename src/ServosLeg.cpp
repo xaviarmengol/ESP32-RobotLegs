@@ -1,6 +1,14 @@
 #include "ServosLeg.hpp"
 #include "LegKinematics.hpp"
 
+#include <ESP32Servo.h>
+
+#define SERVO_MICROSECONDS true
+#define MICROS_0_DEG 1000
+#define MICROS_180_DEG 2000
+
+// https://aprendiendoarduino.wordpress.com/tag/servomotor/
+
 ServosLeg::ServosLeg(){
 
 }
@@ -20,27 +28,41 @@ bool ServosLeg::attachPins(const int pinLeft, const int pinRight, LegKinematics*
 ServosLeg::~ServosLeg() {
 }
 
-bool ServosLeg::moveToPoint( const int relativeXLowJoint, const int relativeYLowJoint) {
+bool ServosLeg::moveToPoint( const double relativeXLowJoint, const double relativeYLowJoint) {
     bool hasSolution = _ptrLeg->calcAnglesHasSolution(relativeXLowJoint, relativeYLowJoint);
     if (!hasSolution) Serial.println("No solution found!!");
     _moveServos(_ptrLeg->leftLastAngle(), _ptrLeg->rightLastAngle(), hasSolution);
     return(hasSolution);
 }
 
-bool ServosLeg::calibrateMoveToAngles(const int leftAngleDeg, const int rightAngleDeg, bool forceServo) {
+bool ServosLeg::calibrateMoveToAngles(const double leftAngleDeg, const double rightAngleDeg, bool forceServo) {
     bool hasSolution = _ptrLeg->calcLowJoint(leftAngleDeg, rightAngleDeg);
     _moveServos(leftAngleDeg, rightAngleDeg, hasSolution || forceServo);
     return(hasSolution || forceServo);
 }
 
 
-bool ServosLeg::_moveServos(const int angleLeftDeg, const int angleRightDeg, const bool hasSolution){
+double ServosLeg::_map_double(double x, double in_min, double in_max, double out_min, double out_max){
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+
+bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution){
     bool allOk = false;
 
     if (hasSolution) {
 
-        _servoLeft.write(angleLeftDeg);
-        _servoRight.write(180 - angleRightDeg);
+        if (SERVO_MICROSECONDS) {
+            double microsLeft = _map_double(angleLeftDeg, 0, 180, MICROS_0_DEG, MICROS_180_DEG);
+            _servoLeft.writeMicroseconds(static_cast<int>(microsLeft));
+
+            double microsRight = _map_double(angleRightDeg, 0, 180, MICROS_0_DEG, MICROS_180_DEG);
+            _servoRight.writeMicroseconds(static_cast<int>(microsRight));
+
+        } else {
+            _servoLeft.write(angleLeftDeg);
+            _servoRight.write(180 - angleRightDeg);
+        }
 
         Serial.println(angleLeftDeg);
         Serial.println(angleRightDeg);
@@ -49,6 +71,8 @@ bool ServosLeg::_moveServos(const int angleLeftDeg, const int angleRightDeg, con
     }
     return(allOk);
 }
+
+
 
 
 

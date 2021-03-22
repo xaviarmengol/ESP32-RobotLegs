@@ -3,7 +3,7 @@
 
 LegKinematics::LegKinematics() {}
 
-void LegKinematics::defineGeometry(int distanceBetweenJoints, int topSegmentLenth, int bottomSegmentLenth) {
+void LegKinematics::defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth) {
 
     _distanceBetweenJoints = distanceBetweenJoints;
     _topSegmentLengh = topSegmentLenth;
@@ -16,7 +16,7 @@ void LegKinematics::defineGeometry(int distanceBetweenJoints, int topSegmentLent
 LegKinematics::~LegKinematics() {
 }
 
-bool LegKinematics::calcAnglesHasSolution(int relativeXLowJoint, int relativeYLowJoint) {
+bool LegKinematics::calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint) {
 
     _hasSolution = _leftSide.calcAngleHasSolution(relativeXLowJoint, relativeYLowJoint);
     _hasSolution &= _rightSide.calcAngleHasSolution(relativeXLowJoint, relativeYLowJoint);
@@ -29,22 +29,22 @@ bool LegKinematics::hasSolution(){
     return(_hasSolution);
 }
 
-int LegKinematics::leftLastAngle(){
+double LegKinematics::leftLastAngle(){
     return(_leftAngleDeg);
 }
 
-int LegKinematics::rightLastAngle(){
+double LegKinematics::rightLastAngle(){
     return(_rightAngleDeg);
 }
 
-bool LegKinematics::calcLowJoint(int leftAngleDeg, int rightAngleDeg) {
+bool LegKinematics::calcLowJoint(double leftAngleDeg, double rightAngleDeg) {
     return(_leftSide.calcLowJointHasSolution(_rightSide, leftAngleDeg, rightAngleDeg));
 }
 
-int LegKinematics::xLowJoint() {
+double LegKinematics::xLowJoint() {
     return(_leftSide.xLowJointLastSol());
 }
 
-int LegKinematics::yLowJoint() {
+double LegKinematics::yLowJoint() {
     return(_leftSide.yLowJointLastSol());
 }

@@ -10,48 +10,42 @@ private:
 
     bool _isLeftSide;
 
-    int _topSegmentLenth;
-    int _bottomSegmentLenth;
-    int _xTopJoint;
-    int _yTopJoint;
+    double _topSegmentLenth;
+    double _bottomSegmentLenth;
+    double _xTopJoint;
+    double _yTopJoint;
 
-    int _xLowJoint;
-    int _yLowJoint;
+    double _xLowJoint;
+    double _yLowJoint;
 
-    int _xCenterJoint=0;
-    int _yCenterJoint=0;
+    double _xCenterJoint=0;
+    double _yCenterJoint=0;
 
     double _alfaRad=0.0;
-    int _alfaDeg=0;
+    double _alfaDeg=0;
 
     bool _hasSolution;
 
-    bool _circle_circle_intersection(int x0, int y0, int r0,
-                               int x1, int y1, int r1,
-                               int &xi, int &yi,
-                               int &xi_prime, int &yi_prime);
-
-
 public:
-    CalcLegJoints(int xTopJoint=0, int yTopJoint=0, int topSegmentLenth=0, int bottomSegmentLenth=0, bool isLeftSide=true);
+    CalcLegJoints(double xTopJoint=0, double yTopJoint=0, double topSegmentLenth=0, double bottomSegmentLenth=0, bool isLeftSide=true);
 
-    int bottomSegmentLenth();
+    double bottomSegmentLenth();
 
     // Inverse Kinematics
-    bool calcAngleHasSolution(int xLowJoint, int yLowJoint);
+    bool calcAngleHasSolution(double xLowJoint, double yLowJoint);
     bool hasSolution();
-    int angleLastSolDeg();
+    double angleLastSolDeg();
 
     // Intermediate calculation
-    void calcCenterJointFromAngleDeg(int angleDeg);
-    int xCenterJointLastSol();
-    int yCenterJointLastSol();
+    void calcCenterJointFromAngleDeg(double angleDeg);
+    double xCenterJointLastSol();
+    double yCenterJointLastSol();
 
     // Direct Kinematics
 
-    bool calcLowJointHasSolution(CalcLegJoints &otherLeg, int thisAngleDeg, int otherAngleDeg);
-    int xLowJointLastSol();
-    int yLowJointLastSol();
+    bool calcLowJointHasSolution(CalcLegJoints &otherLeg, double thisAngleDeg, double otherAngleDeg);
+    double xLowJointLastSol();
+    double yLowJointLastSol();
 
     void test();
     
