@@ -56,12 +56,12 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
             double microsLeft = _map_double(angleLeftDeg, 0, 180, MICROS_0_DEG, MICROS_180_DEG);
             _servoLeft.writeMicroseconds(static_cast<int>(microsLeft));
 
-            double microsRight = _map_double(angleRightDeg, 0, 180, MICROS_0_DEG, MICROS_180_DEG);
+            double microsRight = _map_double(angleRightDeg, 0, 180, MICROS_180_DEG, MICROS_0_DEG);
             _servoRight.writeMicroseconds(static_cast<int>(microsRight));
 
         } else {
-            _servoLeft.write(angleLeftDeg);
-            _servoRight.write(180 - angleRightDeg);
+            _servoLeft.write(static_cast<int>(angleLeftDeg));
+            _servoRight.write(180 - static_cast<int>(angleRightDeg));
         }
 
         Serial.println(angleLeftDeg);
