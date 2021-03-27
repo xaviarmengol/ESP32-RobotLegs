@@ -4,8 +4,8 @@
 #include <ESP32Servo.h>
 
 #define SERVO_MICROSECONDS true
-#define MICROS_0_DEG 1000
-#define MICROS_180_DEG 2000
+#define MICROS_0_DEG 620
+#define MICROS_180_DEG 2380
 
 // https://aprendiendoarduino.wordpress.com/tag/servomotor/
 
@@ -56,9 +56,11 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
 
         if (SERVO_MICROSECONDS) {
             double microsLeft = _map_double(angleLeftDeg, 0, 180, MICROS_0_DEG, MICROS_180_DEG);
+            Serial.println(microsLeft);
             _servoLeft.writeMicroseconds(static_cast<int>(microsLeft));
 
             double microsRight = _map_double(angleRightDeg, 0, 180, MICROS_180_DEG, MICROS_0_DEG);
+            Serial.println(microsRight);
             _servoRight.writeMicroseconds(static_cast<int>(microsRight));
 
         } else {

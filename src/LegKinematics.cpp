@@ -1,6 +1,8 @@
 #include "LegKinematics.hpp"
 #include "CalcLegJoints.hpp"
 
+constexpr double SAFETY_FACTOR = 0.95;
+
 LegKinematics::LegKinematics() {}
 
 void LegKinematics::defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth) {
@@ -23,6 +25,9 @@ bool LegKinematics::calcAnglesHasSolution(double relativeXLowJoint, double relat
 
     _leftAngleDeg = _leftSide.angleLastSolDeg();
     _rightAngleDeg = _rightSide.angleLastSolDeg();
+
+    _hasSolution &= abs(_rightSide.xCenterJointLastSol() - _leftSide.xCenterJointLastSol()) < 
+                    (_leftSide.bottomSegmentLenth() + _rightSide.bottomSegmentLenth()) * SAFETY_FACTOR;
 
     return(_hasSolution);
 }

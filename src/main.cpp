@@ -3,8 +3,8 @@
 #include "LegKinematics.hpp"
 #include "PathGenerator.hpp"
 
-//#include "ServosLeg.hpp"
-#include "ServosEasingLeg.hpp"
+#include "ServosLeg.hpp"
+//#include "ServosEasingLeg.hpp"
 
 // Try this: https://wired.chillibasket.com/2020/05/servo-trajectory/
 
@@ -22,8 +22,8 @@
 #define PERIOD_CALC 40
 
 LegKinematics legsKinematic;
-//ServosLeg legServos;
-ServosLegEasing legServos(PERIOD_CALC);
+ServosLeg legServos;
+//ServosLegEasing legServos(PERIOD_CALC);
 PathGenerator pathGenerator(PERIOD_CALC);
 
 bool stateTest=true;
@@ -36,10 +36,10 @@ void setup() {
     Serial.begin(115200);
     Serial.println(F("START " __FILE__ "\r\nfrom " __DATE__));
 
-    pathGenerator.addPathPoint(80,-80,200);
-    pathGenerator.addPathPoint(80,-130,50);
-    pathGenerator.addPathPoint(0,-130,200);
-    //pathGenerator.addPathPoint(0,-80,100);
+    //pathGenerator.addPathPoint(-50,-100,300);
+    //pathGenerator.addPathPoint(41 + 50,-100,50);
+    pathGenerator.addPathPoint(20,-165,10);
+    pathGenerator.addPathPoint(20,-80,500);
     //pathGenerator.addPathPoint(80,-90,20);
     //pathGenerator.addPathPoint(-40,-90,20);
 
@@ -55,13 +55,13 @@ void setup() {
 void loop() {
 
     int mode = 2;
-   /*
+   
     if (mode == 0) {
         if (stateTest) {
-            legsServos.calibrateMoveToAngles(90, 90, false);
+            legServos.calibrateMoveToAngles(90, 90, false);
             Serial.println("90");
         } else {
-            legsServos.calibrateMoveToAngles(50, 50, false);
+            legServos.calibrateMoveToAngles(0, 0, false);
             Serial.println("0");
         }
         stateTest = !stateTest;
@@ -71,15 +71,14 @@ void loop() {
     if (mode == 1) {
 
         if (stateTest) {
-            legsServos.moveToPoint( 0-20, -130);
+            legServos.moveToPoint( -50, -100);
         } else {
-            legsServos.moveToPoint( 44+20, -130);
+            legServos.moveToPoint( 41+50, -100);
         }
         stateTest = !stateTest;
 
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
-   */
 
     if (mode == 2) {
         pathGenerator.calcNextPoint(XNextPoint,YNextPoint);
@@ -90,6 +89,12 @@ void loop() {
         Serial.println("---");        
 
         vTaskDelay(pdMS_TO_TICKS(PERIOD_CALC));
+    }
+
+    if (mode ==3) {
+
+
+
     }
 
 }
