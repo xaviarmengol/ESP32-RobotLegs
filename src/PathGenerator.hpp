@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 constexpr int MAX_POINTS = 10;
+constexpr double DELTA_DIST = 0.5; // To avoid rounding errors comparing doubles
 
 //X -> mm
 //Y -> mm
@@ -130,8 +131,8 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
 
     // Are we over the target point
 
-    bool overX = (((XNextPoint > XNextPathPoint) && deltaXIsPositive) || ((XNextPoint < XNextPathPoint) && !deltaXIsPositive));
-    bool overY = (((YNextPoint > YNextPathPoint) && deltaYIsPositive) || ((YNextPoint < YNextPathPoint) && !deltaYIsPositive));
+    bool overX = (((XNextPoint - XNextPathPoint > DELTA_DIST) && deltaXIsPositive) || ((XNextPoint - XNextPathPoint < -DELTA_DIST) && !deltaXIsPositive));
+    bool overY = (((YNextPoint - YNextPathPoint > DELTA_DIST) && deltaYIsPositive) || ((YNextPoint - YNextPathPoint < -DELTA_DIST) && !deltaYIsPositive));
 
     if (overX || overY) {
         outXNextPoint = XNextPathPoint;

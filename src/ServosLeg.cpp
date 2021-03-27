@@ -13,6 +13,8 @@ ServosLeg::ServosLeg(){
 
 }
 
+// TODO: Make LegKinematics abstract
+
 bool ServosLeg::attachPins(const int pinLeft, const int pinRight, LegKinematics* leg){
     bool allOk = true;
 
@@ -63,6 +65,9 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
             _servoLeft.write(static_cast<int>(angleLeftDeg));
             _servoRight.write(180 - static_cast<int>(angleRightDeg));
         }
+
+
+        
 
         Serial.println(angleLeftDeg);
         Serial.println(angleRightDeg);

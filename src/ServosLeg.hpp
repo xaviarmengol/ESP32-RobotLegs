@@ -2,14 +2,14 @@
 #include "ServosLeg.hpp"
 
 #include <ESP32Servo.h>
+
 #include "LegKinematics.hpp"
-
-
 
 class ServosLeg {
 private:
     Servo _servoLeft;
     Servo _servoRight;
+
     LegKinematics* _ptrLeg;
 
     bool _moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution);

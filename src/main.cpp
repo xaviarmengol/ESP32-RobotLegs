@@ -1,8 +1,10 @@
 #include <Arduino.h>
 
 #include "LegKinematics.hpp"
-#include "ServosLeg.hpp"
 #include "PathGenerator.hpp"
+
+//#include "ServosLeg.hpp"
+#include "ServosEasingLeg.hpp"
 
 // Try this: https://wired.chillibasket.com/2020/05/servo-trajectory/
 
@@ -17,10 +19,11 @@
 
 // Test commit
 
-#define PERIOD_CALC 10
+#define PERIOD_CALC 40
 
 LegKinematics legsKinematic;
-ServosLeg legsServos;
+//ServosLeg legServos;
+ServosLegEasing legServos(PERIOD_CALC);
 PathGenerator pathGenerator(PERIOD_CALC);
 
 bool stateTest=true;
@@ -31,6 +34,7 @@ int YNextPoint;
 void setup() {
 
     Serial.begin(115200);
+    Serial.println(F("START " __FILE__ "\r\nfrom " __DATE__));
 
     pathGenerator.addPathPoint(80,-80,200);
     pathGenerator.addPathPoint(80,-130,50);
@@ -45,7 +49,7 @@ void setup() {
 
     // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33
 
-    legsServos.attachPins(17, 18, &legsKinematic);
+    legServos.attachPins(17, 18, &legsKinematic);
 }
 
 void loop() {
@@ -79,7 +83,7 @@ void loop() {
 
     if (mode == 2) {
         pathGenerator.calcNextPoint(XNextPoint,YNextPoint);
-        legsServos.moveToPoint(XNextPoint, YNextPoint);
+        legServos.moveToPoint(XNextPoint, YNextPoint);
 
         Serial.println(XNextPoint);
         Serial.println(YNextPoint);

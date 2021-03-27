@@ -4,7 +4,6 @@
 
 // Class to calc the direct and inverse cynematic of a Robot leg.
 
-
 class CalcLegJoints {
 private:
 
