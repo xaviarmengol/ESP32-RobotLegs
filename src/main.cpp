@@ -9,7 +9,6 @@
 // Try this: https://wired.chillibasket.com/2020/05/servo-trajectory/
 
 
-
 // Test:
 //CalcLegJoints leftSide(0, 0, 50, 50, true);
 //bool hasSolL = leftSide.calcAngleHasSolution(0, -71); // -> Angle 44 (-35, -35)
@@ -36,16 +35,21 @@ void setup() {
     Serial.begin(115200);
     Serial.println(F("START " __FILE__ "\r\nfrom " __DATE__));
 
-    //pathGenerator.addPathPoint(-50,-100,300);
-    //pathGenerator.addPathPoint(41 + 50,-100,50);
-    pathGenerator.addPathPoint(20,-165,10);
-    pathGenerator.addPathPoint(20,-80,500);
-    //pathGenerator.addPathPoint(80,-90,20);
-    //pathGenerator.addPathPoint(-40,-90,20);
+    double vel = 200;
+    pathGenerator.addPathPoint(60,-150,vel);
+    pathGenerator.addPathPoint(60,-90,vel);
+    pathGenerator.addPathPoint(-20,-90,vel);
+    vel = 30;
+    pathGenerator.addPathPoint(-20,-150,vel);
+    pathGenerator.addPathPoint(60,-150,vel);
+    pathGenerator.addPathPoint(60,-90,vel);
+    pathGenerator.addPathPoint(-20,-90,vel);
+    vel = 100;
+    pathGenerator.addPathPoint(-20,-150,vel);
 
     pathGenerator.setStartingPathPoint(0);
 
-    legsKinematic.defineGeometry(41, 84, 84);
+    legsKinematic.defineGeometry(41, 80, 80);
 
     // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33
 
@@ -58,10 +62,10 @@ void loop() {
    
     if (mode == 0) {
         if (stateTest) {
-            legServos.calibrateMoveToAngles(90, 90, false);
+            legServos.calibrateMoveToAngles(90, 90, true);
             Serial.println("90");
         } else {
-            legServos.calibrateMoveToAngles(0, 0, false);
+            legServos.calibrateMoveToAngles(0, 0, true);
             Serial.println("0");
         }
         stateTest = !stateTest;
@@ -92,8 +96,6 @@ void loop() {
     }
 
     if (mode ==3) {
-
-
 
     }
 
