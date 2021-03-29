@@ -41,8 +41,10 @@ PathGenerator::PathGenerator(int periodMs) {
 }
 
 void PathGenerator::setStartingPathPoint(int startingPathPoint) {
-    _startingPathPoint = startingPathPoint;
-    _currentPathPoint = _startingPathPoint;
+    if (startingPathPoint < _numPathPoints) {
+        _startingPathPoint = startingPathPoint;
+        _currentPathPoint = _startingPathPoint;
+    }
 }
 
 bool PathGenerator::addPathPoint(double x, double y, double v, double type) {
@@ -97,11 +99,17 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     double XNextPathPoint = _pathPoints[0][nextPathPoint];
     double YNextPathPoint = _pathPoints[1][nextPathPoint];
 
-    double deltaX = static_cast<double>(XNextPathPoint - XPathPoint);
-    double deltaY = static_cast<double>(YNextPathPoint - YPathPoint);
+    double deltaX = XNextPathPoint - XPathPoint;
+    double deltaY =YNextPathPoint - YPathPoint;
 
-    bool deltaXIsPositive = deltaX>=0.0;
-    bool deltaYIsPositive = deltaY>=0.0;
+    bool deltaXIsPositive = deltaX>DELTA_DIST;
+    bool deltaYIsPositive = deltaY>DELTA_DIST;
+
+    bool deltaXIsNegative = deltaX<-1.0*DELTA_DIST;
+    bool deltaYIsNegative = deltaY<-1.0*DELTA_DIST;
+
+    bool deltaXIsFlat = !deltaXIsPositive && !deltaXIsNegative;
+    bool deltaYIsFlat = !deltaYIsPositive && !deltaYIsNegative;
 
     double distanceBetweenPathPoints = sqrt(pow(deltaX,2) + pow(deltaY,2));
 
@@ -110,7 +118,7 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     double deltaXNorm = deltaX / distanceBetweenPathPoints; 
     double deltaYNorm = deltaY / distanceBetweenPathPoints;
 
-    double distanceTotal = static_cast<double> (_pathPoints[2][_currentPathPoint] * _periodMs * _stepsInCurrentSegment) / 1000.0;
+    double distanceTotal = (_pathPoints[2][_currentPathPoint] * _periodMs * _stepsInCurrentSegment) / 1000.0;
 
     double deltaXTotal = deltaXNorm * distanceTotal; // deltaNorma * Vel * Period
     double deltaYTotal = deltaYNorm * distanceTotal; // deltaNorma * Vel * Period
@@ -129,10 +137,19 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     //Serial.print("XNextPoint: ");Serial.println(XNextPoint);
     //Serial.print("YNextPoint: ");Serial.println(YNextPoint);
 
+    double distXToNextPath = XNextPoint - XNextPathPoint;
+    double distYToNextPath = YNextPoint - YNextPathPoint;
+
+    bool overX = (deltaXIsPositive && (distXToNextPath > DELTA_DIST)) || 
+                 (deltaXIsNegative && (distXToNextPath < DELTA_DIST));
+
+    bool overY = (deltaYIsPositive && (distYToNextPath > DELTA_DIST)) || 
+                 (deltaYIsNegative && (distYToNextPath < DELTA_DIST));
+
     // Are we over the target point
 
-    bool overX = (((XNextPoint - XNextPathPoint > DELTA_DIST) && deltaXIsPositive) || ((XNextPoint - XNextPathPoint < -DELTA_DIST) && !deltaXIsPositive));
-    bool overY = (((YNextPoint - YNextPathPoint > DELTA_DIST) && deltaYIsPositive) || ((YNextPoint - YNextPathPoint < -DELTA_DIST) && !deltaYIsPositive));
+    //bool overX = (((XNextPoint - XNextPathPoint > DELTA_DIST) && deltaXIsPositive) || ((XNextPoint - XNextPathPoint < -DELTA_DIST) && !deltaXIsPositive));
+    //bool overY = (((YNextPoint - YNextPathPoint > DELTA_DIST) && deltaYIsPositive) || ((YNextPoint - YNextPathPoint < -DELTA_DIST) && !deltaYIsPositive));
 
     if (overX || overY) {
         outXNextPoint = XNextPathPoint;
