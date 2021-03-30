@@ -6,13 +6,16 @@ private:
     double _topSegmentLengh = 0;
     double _bottomSegmentLengh = 0;
     double _distanceBetweenJoints = 0;
-    bool _hasSolution;
+    bool _hasSolution = false;
 
-    double _leftAngleDeg;
-    double _rightAngleDeg;
+    double _leftAngleDeg = 0;
+    double _rightAngleDeg = 0;
 
     CalcLegJoints _leftSide;
     CalcLegJoints _rightSide;
+
+    double _xLowJoint = 0;
+    double _yLowJoint = 0;
 
 public:
     LegKinematics();
@@ -22,7 +25,7 @@ public:
     double leftLastAngle();
     double rightLastAngle();
 
-    bool calcLowJoint(double leftAngleDeg, double rightAngleDeg);
+    bool calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg);
     double xLowJoint();
     double yLowJoint();
 

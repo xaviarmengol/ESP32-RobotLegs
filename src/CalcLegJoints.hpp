@@ -42,11 +42,8 @@ public:
 
     // Direct Kinematics
 
-    bool calcLowJointHasSolution(CalcLegJoints &otherLeg, double thisAngleDeg, double otherAngleDeg);
-    double xLowJointLastSol();
-    double yLowJointLastSol();
-
-    void test();
+    double xLowJoint();
+    double yLowJoint();
     
     ~CalcLegJoints();
 };

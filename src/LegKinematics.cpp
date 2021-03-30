@@ -1,5 +1,6 @@
 #include "LegKinematics.hpp"
 #include "CalcLegJoints.hpp"
+#include "CircleCircleIntersection.hpp"
 
 constexpr double SAFETY_FACTOR = 0.95;
 
@@ -44,14 +45,48 @@ double LegKinematics::rightLastAngle(){
     return(_rightAngleDeg);
 }
 
-bool LegKinematics::calcLowJoint(double leftAngleDeg, double rightAngleDeg) {
-    return(_leftSide.calcLowJointHasSolution(_rightSide, leftAngleDeg, rightAngleDeg));
+bool LegKinematics::calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg) {
+
+    //return(_leftSide.calcLowJointHasSolution(_rightSide, leftAngleDeg, rightAngleDeg));
+
+    bool hasSolution;
+
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+
+    _leftSide.calcCenterJointFromAngleDeg(leftAngleDeg);
+    _rightSide.calcCenterJointFromAngleDeg(rightAngleDeg);
+
+    //http://paulbourke.net/geometry/circlesphere/
+
+    hasSolution = circle_circle_intersection(_leftSide.xCenterJointLastSol(), 
+                                            _leftSide.yCenterJointLastSol(), 
+                                            _leftSide.bottomSegmentLenth(),
+                                            _rightSide.xCenterJointLastSol(), 
+                                            _rightSide.yCenterJointLastSol(), 
+                                            _rightSide.bottomSegmentLenth(),
+                                            x1, y1, x2, y2);
+
+    // Find low solution
+    if (hasSolution) {
+        if (y1 <= _leftSide.yCenterJointLastSol()) {
+            _xLowJoint = x1;
+            _yLowJoint = y1;
+        } else {
+            _xLowJoint = x2;
+            _yLowJoint = y2;
+        }
+    }
+    
+    return (hasSolution);
 }
 
 double LegKinematics::xLowJoint() {
-    return(_leftSide.xLowJointLastSol());
+    return(_xLowJoint);
 }
 
 double LegKinematics::yLowJoint() {
-    return(_leftSide.yLowJointLastSol());
+    return(_yLowJoint);
 }

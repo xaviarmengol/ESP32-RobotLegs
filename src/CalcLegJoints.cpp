@@ -1,6 +1,8 @@
 #include "CalcLegJoints.hpp"
 #include "CircleCircleIntersection.hpp"
 
+constexpr double SAFETY_FACTOR_LEG_SIDE = 0.95;
+
 CalcLegJoints::CalcLegJoints(double xTopJoint, double yTopJoint, double topSegmentLenth, double bottomSegmentLenth, bool isLeftSide) {
 
     _isLeftSide = isLeftSide;
@@ -22,25 +24,23 @@ double CalcLegJoints::bottomSegmentLenth() {
 }
 
 
-void CalcLegJoints::test () {
-
-    run_test(-1.0, -1.0, 1.5, 1.0, 1.0, 2.0);
-    run_test(1.0, -1.0, 1.5, -1.0, 1.0, 2.0);
-    run_test(-1.0, 1.0, 1.5, 1.0, -1.0, 2.0);
-    run_test(1.0, 1.0, 1.5, -1.0, -1.0, 2.0);
-    run_test(0.0, 0.0, 50.0, 0.0, -1.0, 50.0);
-}
-
 
 bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
-    double _xCenterJoint1;
-    double _yCenterJoint1;
+    double xCenterJoint1;
+    double yCenterJoint1;
 
-    double _xCenterJoint2;
-    double _yCenterJoint2;
+    double xCenterJoint2;
+    double yCenterJoint2;
 
-    _hasSolution = circle_circle_intersection(_xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth, _xCenterJoint1, _yCenterJoint1, _xCenterJoint2, _yCenterJoint2);
+    // Check if the distance is too far (or the middle angle is too close to 180)
+
+    double distTopToBottom = sqrt(pow(_xTopJoint - xLowJoint, 2) + pow(_yTopJoint - yLowJoint, 2));
+    if (distTopToBottom > (_topSegmentLenth + _bottomSegmentLenth) * SAFETY_FACTOR_LEG_SIDE) {
+        return(false);
+    }
+
+    _hasSolution = circle_circle_intersection(_xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth, xCenterJoint1, yCenterJoint1, xCenterJoint2, yCenterJoint2);
 
     //printf("INT: x0=%i, y0=%i, r0=%i, x1=%i, y1=%i, r1=%i :\n",
     //      _xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth);
@@ -49,22 +49,25 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
     if (_hasSolution) {
 
         if (_isLeftSide) {
-            if (_xCenterJoint1 <= _xCenterJoint2) {
-                _xCenterJoint = _xCenterJoint1; 
-                _yCenterJoint = _yCenterJoint1;
+            if (xCenterJoint1 <= xCenterJoint2) {
+                _xCenterJoint = xCenterJoint1; 
+                _yCenterJoint = yCenterJoint1;
             } else {
-                _xCenterJoint = _xCenterJoint2; 
-                _yCenterJoint = _yCenterJoint2;
+                _xCenterJoint = xCenterJoint2; 
+                _yCenterJoint = yCenterJoint2;
             }
         } else {
-            if (_xCenterJoint1 >= _xCenterJoint2) {
-                _xCenterJoint = _xCenterJoint1; 
-                _yCenterJoint = _yCenterJoint1;
+            if (xCenterJoint1 >= xCenterJoint2) {
+                _xCenterJoint = xCenterJoint1; 
+                _yCenterJoint = yCenterJoint1;
             } else {
-                _xCenterJoint = _xCenterJoint2; 
-                _yCenterJoint = _yCenterJoint2;
+                _xCenterJoint = xCenterJoint2; 
+                _yCenterJoint = yCenterJoint2;
             }            
         }
+
+        _xLowJoint = xLowJoint;
+        _yLowJoint = yLowJoint;
 
         _alfaRad = asin(static_cast<double>((_yTopJoint - _yCenterJoint))/static_cast<double>(_topSegmentLenth));
         _alfaDeg = _alfaRad * RAD_TO_DEG;
@@ -106,44 +109,11 @@ double CalcLegJoints::yCenterJointLastSol() {
 }
 
 
-bool CalcLegJoints::calcLowJointHasSolution(CalcLegJoints &otherLeg, double thisAngleDeg, double otherAngleDeg) {
-
-    bool hasSolution;
-
-    double x1;
-    double y1;
-    double x2;
-    double y2;
-
-    this->calcCenterJointFromAngleDeg(thisAngleDeg);
-    otherLeg.calcCenterJointFromAngleDeg(otherAngleDeg);
-
-    //http://paulbourke.net/geometry/circlesphere/
-
-    hasSolution = circle_circle_intersection(_xCenterJoint, _yCenterJoint, _bottomSegmentLenth,
-                                otherLeg.xCenterJointLastSol(), otherLeg.yCenterJointLastSol(), otherLeg.bottomSegmentLenth(),
-                                 x1, y1, x2, y2);
-
-    // Find low solution
-    if (hasSolution) {
-        if (y1 <= _yCenterJoint) {
-            _xLowJoint = x1;
-            _yLowJoint = y1;
-        } else {
-            _xLowJoint = x2;
-            _yLowJoint = y2;
-        }
-    }
-
-    return (hasSolution);
-}
-
-
-double CalcLegJoints::xLowJointLastSol() {
+double CalcLegJoints::xLowJoint() {
     return(_xLowJoint);
 }
 
-double CalcLegJoints::yLowJointLastSol() {
+double CalcLegJoints::yLowJoint() {
     return(_yLowJoint);
 }
 

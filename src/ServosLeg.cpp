@@ -38,7 +38,7 @@ bool ServosLeg::moveToPoint( const double relativeXLowJoint, const double relati
 }
 
 bool ServosLeg::calibrateMoveToAngles(const double leftAngleDeg, const double rightAngleDeg, bool forceServo) {
-    bool hasSolution = _ptrLeg->calcLowJoint(leftAngleDeg, rightAngleDeg);
+    bool hasSolution = _ptrLeg->calcLowJointHasSolution(leftAngleDeg, rightAngleDeg);
     _moveServos(leftAngleDeg, rightAngleDeg, hasSolution || forceServo);
     return(hasSolution || forceServo);
 }
