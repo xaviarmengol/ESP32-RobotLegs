@@ -72,21 +72,21 @@ bool LegKinematics::calcLowJointHasSolution(double leftAngleDeg, double rightAng
     // Find low solution
     if (hasSolution) {
         if (y1 <= _leftSide.yCenterJointLastSol()) {
-            _xLowJoint = x1;
-            _yLowJoint = y1;
+            _xContactPoint = x1;
+            _yContactPoint = y1;
         } else {
-            _xLowJoint = x2;
-            _yLowJoint = y2;
+            _xContactPoint = x2;
+            _yContactPoint = y2;
         }
     }
     
     return (hasSolution);
 }
 
-double LegKinematics::xLowJoint() {
-    return(_xLowJoint);
+double LegKinematics::xContactPoint() {
+    return(_xContactPoint);
 }
 
-double LegKinematics::yLowJoint() {
-    return(_yLowJoint);
+double LegKinematics::yContactPoint() {
+    return(_yContactPoint);
 }

@@ -1,5 +1,5 @@
 #include "ServosLeg.hpp"
-#include "LegKinematics.hpp"
+//#include "LegKinematics.hpp"
 
 #include <ESP32Servo.h>
 
@@ -15,12 +15,12 @@ ServosLeg::ServosLeg(){
 
 // TODO: Make LegKinematics abstract
 
-bool ServosLeg::attachPins(const int pinLeft, const int pinRight, LegKinematics* leg){
+bool ServosLeg::attachPins(const int pinLeft, const int pinRight, Kinematics& kinematics){
     bool allOk = true;
 
-    _ptrLeg = leg;
+    _kinematics = kinematics;
 
-    allOk &= (leg != nullptr);
+    allOk &= (_kinematics != nullptr);
     allOk &= (_servoLeft.attach(pinLeft) == 1);
     allOk &= (_servoRight.attach(pinRight) == 1);
     
@@ -31,14 +31,14 @@ ServosLeg::~ServosLeg() {
 }
 
 bool ServosLeg::moveToPoint( const double relativeXLowJoint, const double relativeYLowJoint) {
-    bool hasSolution = _ptrLeg->calcAnglesHasSolution(relativeXLowJoint, relativeYLowJoint);
+    bool hasSolution = _kinematics->calcAnglesHasSolution(relativeXLowJoint, relativeYLowJoint);
     if (!hasSolution) Serial.println("No solution found!!");
-    _moveServos(_ptrLeg->leftLastAngle(), _ptrLeg->rightLastAngle(), hasSolution);
+    _moveServos(_kinematics->leftLastAngle(), _kinematics->rightLastAngle(), hasSolution);
     return(hasSolution);
 }
 
 bool ServosLeg::calibrateMoveToAngles(const double leftAngleDeg, const double rightAngleDeg, bool forceServo) {
-    bool hasSolution = _ptrLeg->calcLowJointHasSolution(leftAngleDeg, rightAngleDeg);
+    bool hasSolution = _kinematics->calcLowJointHasSolution(leftAngleDeg, rightAngleDeg);
     _moveServos(leftAngleDeg, rightAngleDeg, hasSolution || forceServo);
     return(hasSolution || forceServo);
 }

@@ -20,7 +20,10 @@
 
 #define PERIOD_CALC 40
 
-LegKinematics legsKinematic;
+Kinematics legKinematics = std::make_shared<LegKinematics>();
+
+//LegKinematics legsKinematic;
+
 ServosLeg legServos;
 //ServosLegEasing legServos(PERIOD_CALC);
 PathGenerator pathGenerator(PERIOD_CALC);
@@ -49,11 +52,11 @@ void setup() {
 
     pathGenerator.setStartingPathPoint(0);
 
-    legsKinematic.defineGeometry(41, 80, 80);
+    legKinematics->defineGeometry(41, 80, 80);
 
     // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33
 
-    legServos.attachPins(17, 18, &legsKinematic);
+    legServos.attachPins(17, 18, legKinematics);
 }
 
 void loop() {

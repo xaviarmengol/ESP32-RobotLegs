@@ -1,7 +1,24 @@
 #pragma once
 #include "CalcLegJoints.hpp"
+#include "KinematicsInterface.hpp"
 
-class LegKinematics {
+class LegKinematics : public KinematicsInterface {
+
+public:
+    LegKinematics();
+    virtual void defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth) override;
+    virtual bool calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint) override;
+    bool calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg);
+
+    bool hasSolution();
+    double leftLastAngle();
+    double rightLastAngle();
+    
+    double xContactPoint();
+    double yContactPoint();
+
+    ~LegKinematics();
+
 private:
     double _topSegmentLengh = 0;
     double _bottomSegmentLengh = 0;
@@ -14,20 +31,7 @@ private:
     CalcLegJoints _leftSide;
     CalcLegJoints _rightSide;
 
-    double _xLowJoint = 0;
-    double _yLowJoint = 0;
+    double _xContactPoint = 0;
+    double _yContactPoint = 0;
 
-public:
-    LegKinematics();
-    void defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth);
-    bool calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint);
-    bool hasSolution();
-    double leftLastAngle();
-    double rightLastAngle();
-
-    bool calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg);
-    double xLowJoint();
-    double yLowJoint();
-
-    ~LegKinematics();
 };
