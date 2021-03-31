@@ -18,7 +18,7 @@ public:
 
     virtual ~KinematicsInterface() = default;
 
-private:
+protected:
 
     bool _hasSolution = false;
 

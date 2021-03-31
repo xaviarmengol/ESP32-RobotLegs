@@ -33,6 +33,7 @@ bool LegKinematics::calcAnglesHasSolution(double relativeXLowJoint, double relat
     return(_hasSolution);
 }
 
+/*
 bool LegKinematics::hasSolution(){
     return(_hasSolution);
 }
@@ -44,6 +45,7 @@ double LegKinematics::leftLastAngle(){
 double LegKinematics::rightLastAngle(){
     return(_rightAngleDeg);
 }
+*/
 
 bool LegKinematics::calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg) {
 
@@ -83,6 +85,7 @@ bool LegKinematics::calcLowJointHasSolution(double leftAngleDeg, double rightAng
     return (hasSolution);
 }
 
+/*
 double LegKinematics::xContactPoint() {
     return(_xContactPoint);
 }
@@ -90,3 +93,4 @@ double LegKinematics::xContactPoint() {
 double LegKinematics::yContactPoint() {
     return(_yContactPoint);
 }
+*/
