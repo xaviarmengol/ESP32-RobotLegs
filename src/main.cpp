@@ -1,31 +1,18 @@
 #include <Arduino.h>
 
-#include "LegKinematics.hpp"
+//#include "LegKinematics.hpp"
+#include "ExtendedLegKinematics.hpp"
+
 #include "PathGenerator.hpp"
 
 #include "ServosLeg.hpp"
 //#include "ServosEasingLeg.hpp"
-
 // Try this: https://wired.chillibasket.com/2020/05/servo-trajectory/
-
-
-// Test:
-//CalcLegJoints leftSide(0, 0, 50, 50, true);
-//bool hasSolL = leftSide.calcAngleHasSolution(0, -71); // -> Angle 44 (-35, -35)
-
-//CalcLegJoints leftSide(0, 0, 50, 50, true);
-//CalcLegJoints rightSide(10, 0, 50, 50, false);
-
-// Test commit
 
 #define PERIOD_CALC 40
 
-Kinematics legKinematics = std::make_shared<LegKinematics>();
-
-//LegKinematics legsKinematic;
-
+Kinematics legKinematics = std::make_shared<ExtendedLegKinematics>();
 ServosLeg legServos;
-//ServosLegEasing legServos(PERIOD_CALC);
 PathGenerator pathGenerator(PERIOD_CALC);
 
 bool stateTest=true;
@@ -55,7 +42,7 @@ void setup() {
     legKinematics->defineGeometry(41, 80, 80);
 
     // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33
-
+    
     legServos.attachPins(17, 18, legKinematics);
 }
 
