@@ -41,9 +41,12 @@ public:
     double yCenterJointLastSol();
 
     // Direct Kinematics
-
     double xLowJoint();
     double yLowJoint();
+
+    // Direct Kinematics
+    double xTopJoint();
+    double yTopJoint();
     
     ~CalcLegJoints();
 };

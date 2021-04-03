@@ -118,4 +118,12 @@ double CalcLegJoints::yLowJoint() {
 }
 
 
+double CalcLegJoints::xTopJoint() {
+    return(_xTopJoint);
+}
+
+double CalcLegJoints::yTopJoint() {
+    return(_yTopJoint);
+}
+
 

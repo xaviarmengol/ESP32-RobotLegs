@@ -6,16 +6,12 @@ class LegKinematics : public KinematicsInterface {
 
 public:
     LegKinematics();
-    virtual void defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth) override;
-    virtual bool calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint) override;
-    bool calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg);
+    void defineGeometry(double distanceBetweenJoints, 
+                        double topSegmentLenthLeft, double bottomSegmentLenthLeft, double contactPointExtensionLeft=0,
+                        double topSegmentLenthRight=0, double bottomSegmentLenthRight=0, double contactPointExtensionRight=0) override;
 
-    //bool hasSolution();
-    //double leftLastAngle();
-    //double rightLastAngle();
-    
-    //double xContactPoint();
-    //double yContactPoint();
+    virtual bool calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint) override;
+    bool calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg) override;
 
     ~LegKinematics();
 
@@ -23,15 +19,7 @@ private:
     double _topSegmentLengh = 0;
     double _bottomSegmentLengh = 0;
     double _distanceBetweenJoints = 0;
-    //bool _hasSolution = false;
-
-    //double _leftAngleDeg = 0;
-    //double _rightAngleDeg = 0;
 
     CalcLegJoints _leftSide;
     CalcLegJoints _rightSide;
-
-    //double _xContactPoint = 0;
-    //double _yContactPoint = 0;
-
 };

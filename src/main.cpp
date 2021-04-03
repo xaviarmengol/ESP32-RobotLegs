@@ -1,12 +1,8 @@
 #include <Arduino.h>
-
-//#include "LegKinematics.hpp"
 #include "ExtendedLegKinematics.hpp"
-
 #include "PathGenerator.hpp"
 
 #include "ServosLeg.hpp"
-//#include "ServosEasingLeg.hpp"
 // Try this: https://wired.chillibasket.com/2020/05/servo-trajectory/
 
 #define PERIOD_CALC 40
@@ -39,10 +35,10 @@ void setup() {
 
     pathGenerator.setStartingPathPoint(0);
 
-    legKinematics->defineGeometry(41, 80, 80);
 
-    // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33
-    
+    legKinematics->defineGeometry(41.0, 40.0, 120.0, 0.0, 80.0, 80.0, 20.0);
+
+    // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33    
     legServos.attachPins(17, 18, legKinematics);
 }
 
@@ -85,11 +81,7 @@ void loop() {
         vTaskDelay(pdMS_TO_TICKS(PERIOD_CALC));
     }
 
-    if (mode ==3) {
-
-    }
-
-}
+ }
 
 
 

@@ -6,11 +6,13 @@ constexpr double SAFETY_FACTOR = 0.95;
 
 LegKinematics::LegKinematics() {}
 
-void LegKinematics::defineGeometry(double distanceBetweenJoints, double topSegmentLenth, double bottomSegmentLenth) {
+void LegKinematics::defineGeometry(double distanceBetweenJoints, 
+                        double topSegmentLenthLeft, double bottomSegmentLenthLeft, double contactPointExtensionLeft,
+                        double topSegmentLenthRight, double bottomSegmentLenthRight, double contactPointExtensionRight) {
 
     _distanceBetweenJoints = distanceBetweenJoints;
-    _topSegmentLengh = topSegmentLenth;
-    _bottomSegmentLengh = bottomSegmentLenth;
+    _topSegmentLengh = topSegmentLenthLeft;
+    _bottomSegmentLengh = bottomSegmentLenthLeft;
 
     _leftSide = CalcLegJoints(0,                        0, _topSegmentLengh, _bottomSegmentLengh, true);
     _rightSide = CalcLegJoints(_distanceBetweenJoints,   0, _topSegmentLengh, _bottomSegmentLengh, false);
