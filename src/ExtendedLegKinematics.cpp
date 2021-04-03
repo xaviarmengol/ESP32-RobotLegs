@@ -103,13 +103,12 @@ bool ExtendedLegKinematics::calcLowJointHasSolution(double leftAngleDeg, double 
             xLowJoint = x2;
             yLowJoint = y2;
         }
+        // Find contact point, knowing the distance from contact point to low joint (using similar triangles)
+        double factor = _contactPointExtensionRight / _rightSide.bottomSegmentLenth();
+
+        _xContactPoint = xLowJoint - factor * (_rightSide.xCenterJointLastSol() - xLowJoint);
+        _yContactPoint = yLowJoint - factor * ( _rightSide.yCenterJointLastSol() - yLowJoint);
     }
-
-    // Find contact point, knowing the distance from contact point to low joint (using similar triangles)
-    double factor = _contactPointExtensionRight / _rightSide.bottomSegmentLenth();
-
-    _xContactPoint = xLowJoint - factor * (_rightSide.xCenterJointLastSol() - xLowJoint);
-    _yContactPoint = yLowJoint - factor * ( _rightSide.yCenterJointLastSol() - yLowJoint);
 
     return (hasSolution);
 }
