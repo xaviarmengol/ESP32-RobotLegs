@@ -35,6 +35,8 @@ private:
 
     CalcLegJoints _leftSide;
     CalcLegJoints _rightSide;
+    
+    CalcLegJoints _rightSideExtended; // To calc the extended solution
 
 
 };

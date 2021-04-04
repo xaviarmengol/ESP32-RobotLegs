@@ -35,23 +35,27 @@ void setup() {
 
     pathGenerator.setStartingPathPoint(0);
 
-
-    legKinematics->defineGeometry(41.0, 40.0, 120.0, 0.0, 80.0, 80.0, 20.0);
+    //legKinematics->defineGeometry(41.0, 80.0, 80.0);
+    legKinematics->defineGeometry(41.0, 57.0, 103.0, 0.0, 80.0, 80.0, 35.0 + 5.0);
 
     // Recommend only the following pins 2,4,12-19,21-23,25-27,32-33    
     legServos.attachPins(17, 18, legKinematics);
+
+    legServos.calibrateMicroSeconds(620+80,2380,620,2380);
 }
 
 void loop() {
 
-    int mode = 2;
+    int mode = 1;
+
+    if (mode == -1) legServos.moveToAngles(90, 90);
    
     if (mode == 0) {
         if (stateTest) {
-            legServos.calibrateMoveToAngles(90, 90, true);
+            legServos.moveToAngles(90, 90, false);
             Serial.println("90");
         } else {
-            legServos.calibrateMoveToAngles(0, 0, true);
+            legServos.moveToAngles(0, 0, false);
             Serial.println("0");
         }
         stateTest = !stateTest;
@@ -61,9 +65,9 @@ void loop() {
     if (mode == 1) {
 
         if (stateTest) {
-            legServos.moveToPoint( -50, -100);
+            legServos.moveToPoint( 20, -150);
         } else {
-            legServos.moveToPoint( 41+50, -100);
+            legServos.moveToPoint( 20, -100);
         }
         stateTest = !stateTest;
 

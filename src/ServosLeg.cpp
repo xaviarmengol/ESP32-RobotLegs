@@ -4,8 +4,6 @@
 #include <ESP32Servo.h>
 
 #define SERVO_MICROSECONDS true
-#define MICROS_0_DEG 620
-#define MICROS_180_DEG 2380
 
 // https://aprendiendoarduino.wordpress.com/tag/servomotor/
 
@@ -37,7 +35,7 @@ bool ServosLeg::moveToPoint( const double relativeXLowJoint, const double relati
     return(hasSolution);
 }
 
-bool ServosLeg::calibrateMoveToAngles(const double leftAngleDeg, const double rightAngleDeg, bool forceServo) {
+bool ServosLeg::moveToAngles(const double leftAngleDeg, const double rightAngleDeg, bool forceServo) {
     bool hasSolution = _kinematics->calcLowJointHasSolution(leftAngleDeg, rightAngleDeg);
     _moveServos(leftAngleDeg, rightAngleDeg, hasSolution || forceServo);
     return(hasSolution || forceServo);
@@ -48,6 +46,13 @@ double ServosLeg::_map_double(double x, double in_min, double in_max, double out
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+void ServosLeg::calibrateMicroSeconds (const double minLeft, const double maxLeft, const double minRight, const double maxRight) {
+    _minMsLeft = minLeft;
+    _minMsRight = minRight;
+    _maxMsLeft = maxLeft;
+    _maxMsRight = maxRight;
+}
+
 
 bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution){
     bool allOk = false;
@@ -55,11 +60,11 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
     if (hasSolution) {
 
         if (SERVO_MICROSECONDS) {
-            double microsLeft = _map_double(angleLeftDeg, 0, 180, MICROS_0_DEG, MICROS_180_DEG);
+            double microsLeft = _map_double(angleLeftDeg, 0, 180, _minMsLeft, _maxMsLeft);
             //Serial.println(microsLeft);
             _servoLeft.writeMicroseconds(static_cast<int>(microsLeft));
 
-            double microsRight = _map_double(angleRightDeg, 0, 180, MICROS_180_DEG, MICROS_0_DEG);
+            double microsRight = _map_double(angleRightDeg, 180, 0, _minMsRight, _maxMsRight);
             //Serial.println(microsRight);
             _servoRight.writeMicroseconds(static_cast<int>(microsRight));
 

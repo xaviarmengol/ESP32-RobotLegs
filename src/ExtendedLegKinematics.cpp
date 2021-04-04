@@ -4,6 +4,10 @@
 
 constexpr double SAFETY_FACTOR = 0.95;
 
+void printPoint (String point, double X, double Y) {
+    Serial.println(point + ": X=" + String(X) + " Y=" + String(Y));
+}
+
 ExtendedLegKinematics::ExtendedLegKinematics() {}
 
 void ExtendedLegKinematics::defineGeometry(double distanceBetweenJoints, 
@@ -29,11 +33,13 @@ void ExtendedLegKinematics::defineGeometry(double distanceBetweenJoints,
 
     _contactPointExtensionRight = contactPointExtensionRight;
 
-    _xTopJointLeft = 0;
-    _yTopJointLeft = 0;
+    _xTopJointLeft = 0.0;
+    _yTopJointLeft = 0.0;
 
     _leftSide = CalcLegJoints(_xTopJointLeft, _yTopJointLeft, _topSegmentLenthLeft, _bottomSegmentLenthLeft, true);
     _rightSide = CalcLegJoints(_xTopJointLeft + _distanceBetweenJoints, _yTopJointLeft, _topSegmentLenthRight, _bottomSegmentLenthRight, false);
+
+    _rightSideExtended = CalcLegJoints(_xTopJointLeft + _distanceBetweenJoints, _yTopJointLeft, _topSegmentLenthRight, _bottomSegmentLenthRight + contactPointExtensionRight, false);
 
     if (contactPointExtensionLeft != 0) Serial.println("Left extension not implemented. Only right");
 }
@@ -45,19 +51,30 @@ ExtendedLegKinematics::~ExtendedLegKinematics() {
 bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, double relativeYContactPoint) {
 
     // Find middle joint (right), using the contact point
-    _hasSolution = _rightSide.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
+    _hasSolution = _rightSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
+
+    //_hasSolution = _rightSide.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
+    printPoint("Mid Right Extended", _rightSideExtended.xCenterJointLastSol(), _rightSideExtended.yCenterJointLastSol());
 
     // Find low joint (right), using similar triangles
-    double factor = _contactPointExtensionRight / (_rightSide.bottomSegmentLenth() + _contactPointExtensionRight);
+    double factor = _contactPointExtensionRight / (_rightSideExtended.bottomSegmentLenth());
 
-    double xLowJoint = relativeXContactPoint - factor * (relativeXContactPoint - _rightSide.xCenterJointLastSol());
-    double yLowJoint = relativeYContactPoint - factor * (relativeYContactPoint - _rightSide.yCenterJointLastSol());
+    double xLowJoint = relativeXContactPoint - factor * (relativeXContactPoint - _rightSideExtended.xCenterJointLastSol());
+    double yLowJoint = relativeYContactPoint - factor * (relativeYContactPoint - _rightSideExtended.yCenterJointLastSol());
+
+    printPoint("LowJoint", xLowJoint, yLowJoint);
 
     // Find right solution, using the Low Joint (not contact point, because is not the same point)
+    _hasSolution &= _rightSide.calcAngleHasSolution(xLowJoint, yLowJoint);
+
     _hasSolution &= _leftSide.calcAngleHasSolution(xLowJoint, yLowJoint);
+
+    printPoint("Mid Left", _leftSide.xCenterJointLastSol(), _leftSide.yCenterJointLastSol());
 
     _leftAngleDeg = _leftSide.angleLastSolDeg();
     _rightAngleDeg = _rightSide.angleLastSolDeg();
+
+    printPoint("Angles", _leftAngleDeg, _rightAngleDeg);
 
     _hasSolution &= sqrt(pow(_rightSide.xCenterJointLastSol() - _leftSide.xCenterJointLastSol(),2) + 
                          pow(_rightSide.yCenterJointLastSol() - _leftSide.yCenterJointLastSol(),2)) <
