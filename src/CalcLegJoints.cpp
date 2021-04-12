@@ -3,9 +3,9 @@
 
 constexpr double SAFETY_FACTOR_LEG_SIDE = 0.95;
 
-CalcLegJoints::CalcLegJoints(double xTopJoint, double yTopJoint, double topSegmentLenth, double bottomSegmentLenth, bool isLeftSide) {
+CalcLegJoints::CalcLegJoints(double xTopJoint, double yTopJoint, double topSegmentLenth, double bottomSegmentLenth, bool isRearSide) {
 
-    _isLeftSide = isLeftSide;
+    _isRearSide = isRearSide;
 
     _xTopJoint = xTopJoint;
     _yTopJoint = yTopJoint;
@@ -59,7 +59,7 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
     if (_hasSolution) {
 
-        if (_isLeftSide) {
+        if (_isRearSide) {
             if (xCenterJoint1 <= xCenterJoint2) {
                 _xCenterJoint = xCenterJoint1; 
                 _yCenterJoint = yCenterJoint1;
@@ -82,7 +82,7 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
         _alfaRad = atan2(static_cast<double>(_yTopJoint - _yCenterJoint), static_cast<double>(_xTopJoint - _xCenterJoint));
 
-        if (!_isLeftSide) {
+        if (!_isRearSide) {
             _alfaRad = PI - _alfaRad;
             if (_alfaRad >= (3.0/4.0) * PI) _alfaRad = _alfaRad - 2.0*PI;
         }
@@ -111,7 +111,7 @@ void CalcLegJoints::calcCenterJointFromAngleDeg(double angleDeg) {
     double xDelta = cos(angleDeg * DEG_TO_RAD) * _topSegmentLenth;
     double yDelta = sin(angleDeg * DEG_TO_RAD) * _topSegmentLenth;
 
-    if (_isLeftSide) {
+    if (_isRearSide) {
         _xCenterJoint = _xTopJoint - xDelta; 
         _yCenterJoint = _yTopJoint - yDelta;
     } else {

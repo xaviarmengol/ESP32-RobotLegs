@@ -11,41 +11,41 @@
 
 class ServosLeg {
 private:
-    Servo _servoLeft;
-    Servo _servoRight;
+    Servo _servoRear;
+    Servo _servoFront;
 
     Kinematics _kinematics;
 
-    int _minMsLeft = MICROS_0_DEG;
-    int _minMsRight = MICROS_0_DEG;
-    int _maxMsLeft = MICROS_180_DEG;
-    int _maxMsRight = MICROS_180_DEG;
+    int _minMsRear = MICROS_0_DEG;
+    int _minMsFront = MICROS_0_DEG;
+    int _maxMsRear = MICROS_180_DEG;
+    int _maxMsFront = MICROS_180_DEG;
 
-    double _minAngleLeft = ANGLE_MIN;
-    double _maxAngleLeft = ANGLE_MAX;
-    double _offsetAngleLeft = 0.0;
+    double _minAngleRear = ANGLE_MIN;
+    double _maxAngleRear = ANGLE_MAX;
+    double _offsetAngleRear = 0.0;
 
-    double _minAngleRight = ANGLE_MIN;
-    double _maxAngleRight = ANGLE_MAX;
-    double _offsetAngleRight = 0.0;
+    double _minAngleFront = ANGLE_MIN;
+    double _maxAngleFront = ANGLE_MAX;
+    double _offsetAngleFront = 0.0;
 
-    bool _invertedLeft = false;
-    bool _invertedRight = false;
+    bool _invertedRear = false;
+    bool _invertedFront = false;
 
-    bool _moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution);
+    bool _moveServos(const double angleRearDeg, const double angleFrontDeg, const bool hasSolution);
     double _map_double(double x, double in_min, double in_max, double out_min, double out_max);
 
-    bool _isServoRawAngleValid(const double rawAngle, const bool isLeft);
+    bool _isServoRawAngleValid(const double rawAngle, const bool isRear);
 
 public:
     ServosLeg();
-    bool attachPins(const int pinLeft, const int pinRight, Kinematics& kinematics);
+    bool attachPins(const int pinRear, const int pinFront, Kinematics& kinematics);
     bool moveToPoint(const double relativeXLowJoint, const double relativeYLowJoint);
-    bool moveToAngles(const double angleLeft, const double angleRight, bool forceServo=false);
-    void calibrateMicroSeconds (const int minLeft, const int maxLeft, const int minRight, const int maxRight);
-    void calibrateAngles(const double angleMinLeft, const double angleMaxLeft, const double angleOffsetLeft,
-                        const double angleMinRight, const double angleMaxRight, const double angleOffsetRight);
-    void invertServo (const bool isLeft);
+    bool moveToAngles(const double angleRear, const double angleFront, bool forceServo=false);
+    void calibrateMicroSeconds (const int minRear, const int maxRear, const int minFront, const int maxFront);
+    void calibrateAngles(const double angleMinRear, const double angleMaxRear, const double angleOffsetRear,
+                        const double angleMinFront, const double angleMaxFront, const double angleOffsetFront);
+    void invertServo (const bool isRear);
 
     void printPointAngle();
 
