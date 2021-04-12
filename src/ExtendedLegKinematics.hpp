@@ -43,4 +43,6 @@ private:
     CalcLegJoints _FrontSideExtended; // To calc the extended solution
     CalcLegJoints _RearSideExtended;
 
+    bool _contactPointIsInFrontLeg = true;
+
 };

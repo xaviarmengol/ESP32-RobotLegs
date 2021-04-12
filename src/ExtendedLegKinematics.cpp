@@ -46,10 +46,14 @@ void ExtendedLegKinematics::defineGeometry(double distanceBetweenJoints,
     _RearSideExtended = CalcLegJoints(_xTopJointRear, _yTopJointRear, _topSegmentLenthRear, _bottomSegmentLenthRear + contactPointExtensionRear, true);
     _FrontSideExtended = CalcLegJoints(_xTopJointRear + _distanceBetweenJoints, _yTopJointRear, _topSegmentLenthFront, _bottomSegmentLenthFront + contactPointExtensionFront, false);
 
-    if (_contactPointExtensionRear != 0 && _contactPointExtensionFront !=0){
+    _contactPointIsInFrontLeg = true;
+
+    if (_contactPointExtensionRear > 0.0 && _contactPointExtensionFront > 0.0){
         Serial.println("Only one extension point can be set. Rear extension not considered");
-        _contactPointExtensionRear = 0;
-    } 
+        _contactPointIsInFrontLeg = true;
+    } else if (_contactPointExtensionRear > 0.0) {
+        _contactPointIsInFrontLeg = false;
+    }
 }
 
 
@@ -64,7 +68,7 @@ bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, 
     double xLowJoint = 0;
     double yLowJoint = 0;
 
-    if (_contactPointExtensionRear == 0) {
+    if (_contactPointIsInFrontLeg) {
         // Find middle joint (Front), using the contact point
         _hasSolution = _FrontSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
         printPoint("Mid Front Extended", _FrontSideExtended.xCenterJointLastSol(), _FrontSideExtended.yCenterJointLastSol());
