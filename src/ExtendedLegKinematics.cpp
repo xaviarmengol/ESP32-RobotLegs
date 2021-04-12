@@ -5,7 +5,7 @@
 constexpr double SAFETY_FACTOR = 0.95;
 
 void printPoint (String point, double X, double Y) {
-    Serial.println(point + ": X=" + String(X) + " Y=" + String(Y));
+    //Serial.println(point + ": X=" + String(X) + " Y=" + String(Y));
 }
 
 ExtendedLegKinematics::ExtendedLegKinematics() {}
@@ -48,7 +48,10 @@ void ExtendedLegKinematics::defineGeometry(double distanceBetweenJoints,
 ExtendedLegKinematics::~ExtendedLegKinematics() {
 }
 
+
 bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, double relativeYContactPoint) {
+    _xContactPoint = relativeXContactPoint;
+    _yContactPoint = relativeYContactPoint;
 
     // Find middle joint (right), using the contact point
     _hasSolution = _rightSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
@@ -66,7 +69,6 @@ bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, 
 
     // Find right solution, using the Low Joint (not contact point, because is not the same point)
     _hasSolution &= _rightSide.calcAngleHasSolution(xLowJoint, yLowJoint);
-
     _hasSolution &= _leftSide.calcAngleHasSolution(xLowJoint, yLowJoint);
 
     printPoint("Mid Left", _leftSide.xCenterJointLastSol(), _leftSide.yCenterJointLastSol());
@@ -76,9 +78,16 @@ bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, 
 
     printPoint("Angles", _leftAngleDeg, _rightAngleDeg);
 
-    _hasSolution &= sqrt(pow(_rightSide.xCenterJointLastSol() - _leftSide.xCenterJointLastSol(),2) + 
-                         pow(_rightSide.yCenterJointLastSol() - _leftSide.yCenterJointLastSol(),2)) <
-                         (_leftSide.bottomSegmentLenth() + _rightSide.bottomSegmentLenth()) * SAFETY_FACTOR;
+    double distanceBetweenCenterJoints = sqrt(pow(_rightSide.xCenterJointLastSol() - _leftSide.xCenterJointLastSol(),2) + 
+                         pow(_rightSide.yCenterJointLastSol() - _leftSide.yCenterJointLastSol(),2));
+
+    _hasSolution &= distanceBetweenCenterJoints < (_leftSide.bottomSegmentLenth() + _rightSide.bottomSegmentLenth()) * SAFETY_FACTOR;
+
+    // Check if angle too big or too small
+
+    double angleBottom = angleDegTriangleFromSides(_leftSide.bottomSegmentLenth()
+                                    , _rightSide.bottomSegmentLenth(), distanceBetweenCenterJoints);
+    _hasSolution &= ( _minAngleBottom <= angleBottom  && angleBottom <= _maxAngleBottom);
 
     return(_hasSolution);
 }
@@ -129,3 +138,5 @@ bool ExtendedLegKinematics::calcLowJointHasSolution(double leftAngleDeg, double 
 
     return (hasSolution);
 }
+
+

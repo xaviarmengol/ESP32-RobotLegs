@@ -29,3 +29,11 @@ double KinematicsInterface::xTopJointLeft() {
 double KinematicsInterface::yTopJointLeft() {
     return(_yTopJointLeft);
 }
+
+void KinematicsInterface::printContactPointAndAngles() {
+
+    _printString = "P(" + String(_xContactPoint) + "," + String(_yContactPoint) + ") -";
+    _printString += " A(" + String(_leftAngleDeg) + "," + String(_rightAngleDeg) + ")";
+    Serial.println(_printString);
+    
+}

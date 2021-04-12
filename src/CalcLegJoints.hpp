@@ -14,6 +14,9 @@ private:
     double _xTopJoint;
     double _yTopJoint;
 
+    double _minAngle;
+    double _maxAngle;
+
     double _xLowJoint;
     double _yLowJoint;
 
@@ -27,6 +30,8 @@ private:
 
 public:
     CalcLegJoints(double xTopJoint=0, double yTopJoint=0, double topSegmentLenth=0, double bottomSegmentLenth=0, bool isLeftSide=true);
+
+    void setCenterAngleLimits (double minAngle = 30.0, double maxAngle = 170.0);
 
     double bottomSegmentLenth();
 

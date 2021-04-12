@@ -97,3 +97,13 @@ void run_test(double x0, double y0, double r0,
   printf("  x3=%F, y3=%F, x3_prime=%F, y3_prime=%F\n",
             x3, y3, x3_prime, y3_prime);
 }
+
+
+double angleDegTriangleFromSides(double oneSide, double otherSide, double opositeSide) {
+
+    double angle = acos((oneSide*oneSide + otherSide*otherSide - opositeSide*opositeSide) / 
+                        ( 2.0 * oneSide * otherSide));
+
+    return (angle * RAD_TO_DEG);
+
+}

@@ -13,6 +13,7 @@ public:
     bool calcAnglesHasSolution(double relativeXContactPoint, double relativeYContactPoint) override;
     bool calcLowJointHasSolution(double leftAngleDeg, double rightAngleDeg) override;
 
+
     ~ExtendedLegKinematics();
 
 private:
@@ -33,10 +34,12 @@ private:
     double _xLowJoint = 0;
     double _yLowJoint = 0;
 
+    double _minAngleBottom = 30;
+    double _maxAngleBottom = 170;
+
     CalcLegJoints _leftSide;
     CalcLegJoints _rightSide;
     
     CalcLegJoints _rightSideExtended; // To calc the extended solution
-
 
 };

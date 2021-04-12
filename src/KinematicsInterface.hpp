@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <Arduino.h>
 
 class KinematicsInterface {
 
@@ -22,6 +23,8 @@ public:
     double xTopJointLeft();
     double yTopJointLeft();
 
+    void printContactPointAndAngles();
+
     virtual ~KinematicsInterface() = default;
 
 protected:
@@ -37,6 +40,7 @@ protected:
     double _xContactPoint = 0;
     double _yContactPoint = 0;
 
+    String _printString;
 };
 
 using Kinematics = std::shared_ptr<KinematicsInterface>;

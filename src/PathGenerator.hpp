@@ -61,15 +61,6 @@ bool PathGenerator::addPathPoint(double x, double y, double v, double type) {
         allOk = true; 
     }
 
-    /*
-    for (int i=0; i<_numPathPoints; i++) {
-        Serial.print(_pathPoints[0][i]); Serial.print(" - "); 
-        Serial.print(_pathPoints[1][i]); Serial.print(" - ");
-        Serial.print(_pathPoints[2][i]); Serial.print(" - ");
-        Serial.println(_pathPoints[3][i]);
-    }
-    */
-
     return (allOk);
 }
 
@@ -108,8 +99,8 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     bool deltaXIsNegative = deltaX<-1.0*DELTA_DIST;
     bool deltaYIsNegative = deltaY<-1.0*DELTA_DIST;
 
-    bool deltaXIsFlat = !deltaXIsPositive && !deltaXIsNegative;
-    bool deltaYIsFlat = !deltaYIsPositive && !deltaYIsNegative;
+    //bool deltaXIsFlat = !deltaXIsPositive && !deltaXIsNegative;
+    //bool deltaYIsFlat = !deltaYIsPositive && !deltaYIsNegative;
 
     double distanceBetweenPathPoints = sqrt(pow(deltaX,2) + pow(deltaY,2));
 
@@ -123,19 +114,8 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     double deltaXTotal = deltaXNorm * distanceTotal; // deltaNorma * Vel * Period
     double deltaYTotal = deltaYNorm * distanceTotal; // deltaNorma * Vel * Period
 
-    /*
-    Serial.print("XPathPoint: ");Serial.println(XPathPoint);
-    Serial.print("YPathPoint: ");Serial.println(YPathPoint);
-
-    Serial.print("deltaXTotal: ");Serial.println(deltaXTotal);
-    Serial.print("deltaYTotal: ");Serial.println(deltaYTotal);
-    */
-
     double XNextPoint = XPathPoint + deltaXTotal;
     double YNextPoint = YPathPoint + deltaYTotal;
-
-    //Serial.print("XNextPoint: ");Serial.println(XNextPoint);
-    //Serial.print("YNextPoint: ");Serial.println(YNextPoint);
 
     double distXToNextPath = XNextPoint - XNextPathPoint;
     double distYToNextPath = YNextPoint - YNextPathPoint;
@@ -147,9 +127,6 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
                  (deltaYIsNegative && (distYToNextPath < DELTA_DIST));
 
     // Are we over the target point
-
-    //bool overX = (((XNextPoint - XNextPathPoint > DELTA_DIST) && deltaXIsPositive) || ((XNextPoint - XNextPathPoint < -DELTA_DIST) && !deltaXIsPositive));
-    //bool overY = (((YNextPoint - YNextPathPoint > DELTA_DIST) && deltaYIsPositive) || ((YNextPoint - YNextPathPoint < -DELTA_DIST) && !deltaYIsPositive));
 
     if (overX || overY) {
         outXNextPoint = XNextPathPoint;
