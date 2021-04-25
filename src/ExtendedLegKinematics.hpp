@@ -2,16 +2,22 @@
 #include "CalcLegJoints.hpp"
 #include "KinematicsInterface.hpp"
 
+#define MAX_INTERNAL_ANGLE 170
+#define MIN_INTERNAL_ANGLE 60
+
+#define MAX_BOTTOM_ANGLE 160
+#define MIN_BOTTOM_ANGLE 20
+
 class ExtendedLegKinematics : public KinematicsInterface {
 
 public:
     ExtendedLegKinematics();
     void defineGeometry(double distanceBetweenJoints, 
-                                double topSegmentLenthRear, double bottomSegmentLenthRear, double contactPointExtensionRear=0,
-                                double topSegmentLenthFront=0, double bottomSegmentLenthFront=0, double contactPointExtensionFront=0) override;
+                                double topSegmentLenthLeft, double bottomSegmentLenthLeft, double contactPointExtensionLeft=0,
+                                double topSegmentLenthRight=0, double bottomSegmentLenthRight=0, double contactPointExtensionRight=0) override;
 
     bool calcAnglesHasSolution(double relativeXContactPoint, double relativeYContactPoint) override;
-    bool calcContactPointHasSolution(double RearAngleDeg, double FrontAngleDeg) override;
+    bool calcContactPointHasSolution(double LeftAngleDeg, double RightAngleDeg) override;
 
 
     ~ExtendedLegKinematics();
@@ -19,14 +25,14 @@ public:
 private:
     double _distanceBetweenJoints = 0;
 
-    double _topSegmentLenthRear = 0;
-    double _bottomSegmentLenthRear = 0;
+    double _topSegmentLenthLeft = 0;
+    double _bottomSegmentLenthLeft = 0;
 
-    double _topSegmentLenthFront = 0;
-    double _bottomSegmentLenthFront = 0;
+    double _topSegmentLenthRight = 0;
+    double _bottomSegmentLenthRight = 0;
 
-    double _contactPointExtensionFront = 0;
-    double _contactPointExtensionRear = 0;
+    double _contactPointExtensionRight = 0;
+    double _contactPointExtensionLeft = 0;
 
     double _xMiddleJoint = 0;
     double _yMiddleJoint = 0;
@@ -34,15 +40,15 @@ private:
     double _xLowJoint = 0;
     double _yLowJoint = 0;
 
-    double _minAngleBottom = 30;
-    double _maxAngleBottom = 170;
+    double _minAngleBottom = MIN_BOTTOM_ANGLE;
+    double _maxAngleBottom = MAX_BOTTOM_ANGLE;
 
-    CalcLegJoints _RearSide;
-    CalcLegJoints _FrontSide;
+    CalcLegJoints _LeftSide;
+    CalcLegJoints _RightSide;
     
-    CalcLegJoints _FrontSideExtended; // To calc the extended solution
-    CalcLegJoints _RearSideExtended;
+    CalcLegJoints _RightSideExtended; // To calc the extended solution
+    CalcLegJoints _LeftSideExtended;
 
-    bool _contactPointIsInFrontLeg = true;
+    bool _contactPointIsInRightLeg = true;
 
 };

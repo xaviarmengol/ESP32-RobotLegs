@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "CircleCircleIntersection.hpp"
 
 constexpr int MAX_POINTS = 10;
 constexpr double DELTA_DIST = 0.5; // To avoid rounding errors comparing doubles
@@ -12,32 +13,47 @@ private:
 
     int _periodMs;
     int _currentPathPoint = 0;
-    double _startingPathPoint = 0;
+    int _startingPathPoint = 0;
 
     int _stepsInCurrentSegment = 0;
 
     double _pathPoints[4][MAX_POINTS]; // X, Y, Vel, Type
     int _numPathPoints = 0;
-    double _currentPoint[2];
     
     void _calcSegmentDeltaMovements();
-
     int _nextPathPoint(int currentPoint);
 
 
 public:
     PathGenerator(int period);
+    PathGenerator(const PathGenerator& originPath, bool reverseX = false);
     ~PathGenerator();
     bool addPathPoint(double x, double y, double v, double type = 0);
 
     // Calc the next Point every Period.
-    void calcNextPoint(int& outXNextPoint, int& outYNextPoint);
+    point calcNextPoint();
     void setStartingPathPoint(int startingPathPoint);
     
 };
 
 PathGenerator::PathGenerator(int periodMs) {
     _periodMs = periodMs;
+}
+
+PathGenerator::PathGenerator(const PathGenerator& originPath, bool reverseX) {
+    _periodMs = originPath._periodMs;
+    _currentPathPoint = originPath._currentPathPoint;
+    _startingPathPoint = originPath._startingPathPoint;
+    _stepsInCurrentSegment = originPath._stepsInCurrentSegment;
+    _numPathPoints = originPath._numPathPoints;
+
+    for (int numPoint=0; numPoint<_numPathPoints; numPoint++) {
+
+        double sign = reverseX ? -1.0 : 1.0;
+        _pathPoints[0][numPoint] = sign * _pathPoints[0][numPoint];
+
+        for (int i=1; i<4; i++) _pathPoints[i][numPoint] = originPath._pathPoints[i][numPoint];
+    }
 }
 
 void PathGenerator::setStartingPathPoint(int startingPathPoint) {
@@ -77,8 +93,11 @@ int PathGenerator::_nextPathPoint(const int currentPoint) {
 }
 
 
-void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
-    if (_numPathPoints <= 1) return; // Minimum two path points are needed to calc the next points
+point PathGenerator::calcNextPoint() {
+
+    if (_numPathPoints <= 1) return(point(0,0)); // Minimum two path points are needed to calc the next points
+
+    point nextPoint(0,0);
 
     _stepsInCurrentSegment++;
 
@@ -129,15 +148,17 @@ void PathGenerator::calcNextPoint(int& outXNextPoint, int& outYNextPoint) {
     // Are we over the target point
 
     if (overX || overY) {
-        outXNextPoint = XNextPathPoint;
-        outYNextPoint = YNextPathPoint;
+        nextPoint.x = XNextPathPoint;
+        nextPoint.y = YNextPathPoint;
         _currentPathPoint = nextPathPoint;
         _stepsInCurrentSegment = 0;
 
     } else{
-        outXNextPoint = XNextPoint;
-        outYNextPoint = YNextPoint;
+        nextPoint.x = XNextPoint;
+        nextPoint.y = YNextPoint;
     }
+
+    return(nextPoint);
 }
 
 

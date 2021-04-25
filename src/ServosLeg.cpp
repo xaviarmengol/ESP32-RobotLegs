@@ -7,18 +7,29 @@ ServosLeg::ServosLeg(){
 
 }
 
-// TODO: Make LegKinematics abstract
-
-bool ServosLeg::attachPins(const int pinRear, const int pinFront, Kinematics& kinematics){
+bool ServosLeg::attachPins(const int pinLeft, const int pinRight, Adafruit_PWMServoDriver* servoI2C){
     bool allOk = true;
+    _isI2CServo = (servoI2C != nullptr);
 
+    _ptrServoI2C = servoI2C;
+
+    _pin[0] = pinLeft;
+    _pin[1] = pinRight;
+
+    if (!_isI2CServo) {
+        allOk &= (_servoLeft.attach(pinLeft) == 1);
+        allOk &= (_servoRight.attach(pinRight) == 1);
+    } 
+
+    return(allOk);
+}
+
+bool ServosLeg::attachKinematics(Kinematics& kinematics) {
     _kinematics = kinematics;
 
-    allOk &= (_kinematics != nullptr);
-    allOk &= (_servoRear.attach(pinRear) == 1);
-    allOk &= (_servoFront.attach(pinFront) == 1);
-    
-    return(allOk);
+    bool allOk = (_kinematics != nullptr);
+    if (!allOk) Serial.println("Kinematics is not defined. Null pointer");
+    return (allOk);
 }
 
 ServosLeg::~ServosLeg() {
@@ -27,13 +38,17 @@ ServosLeg::~ServosLeg() {
 bool ServosLeg::moveToPoint( const double relativeXLowJoint, const double relativeYLowJoint) {
     bool hasSolution = _kinematics->calcAnglesHasSolution(relativeXLowJoint, relativeYLowJoint);
     if (!hasSolution) Serial.println("No solution found!!");
-    _moveServos(_kinematics->RearLastAngle(), _kinematics->FrontLastAngle(), hasSolution);
+    hasSolution &= _moveServos(_kinematics->LeftLastAngle(), _kinematics->RightLastAngle(), hasSolution);
     return(hasSolution);
 }
 
-bool ServosLeg::moveToAngles(const double RearAngleDeg, const double FrontAngleDeg, bool forceServo) {
-    bool hasSolution = _kinematics->calcContactPointHasSolution(RearAngleDeg, FrontAngleDeg);
-    _moveServos(RearAngleDeg, FrontAngleDeg, hasSolution || forceServo);
+bool ServosLeg::moveToPoint (const point& relativePoint) {
+    return(moveToPoint(relativePoint.x, relativePoint.y));
+}
+
+bool ServosLeg::moveToAngles(const double LeftAngleDeg, const double RightAngleDeg, bool forceServo) {
+    bool hasSolution = _kinematics->calcContactPointHasSolution(LeftAngleDeg, RightAngleDeg);
+    hasSolution &= _moveServos(LeftAngleDeg, RightAngleDeg, hasSolution || forceServo);
     return(hasSolution || forceServo);
 }
 
@@ -42,98 +57,75 @@ double ServosLeg::_map_double(double x, double in_min, double in_max, double out
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void ServosLeg::calibrateMicroSeconds (const int minRear, const int maxRear, const int minFront, const int maxFront) {
-    _minMsRear = minRear;
-    _minMsFront = minFront;
-    _maxMsRear = maxRear;
-    _maxMsFront = maxFront;
+void ServosLeg::calibrateServo(double angleA, double microsA, double angleB, double microsB, double minMicros, double maxMicros, bool isLeft) {
+
+    int servoNum = isLeft ? 0 : 1;
+
+    _angleA[servoNum] = angleA;
+    _microsA[servoNum] = microsA;
+    _angleB[servoNum] = angleB;
+    _microsB[servoNum] = microsB;
+    _microsMin[servoNum] = minMicros;
+    _microsMax[servoNum] = maxMicros;
 }
 
-void ServosLeg::calibrateAngles (const double angleMinRear, const double angleMaxRear, const double angleOffsetRear,
-                        const double angleMinFront, const double angleMaxFront, const double angleOffsetFront) {
-    _minAngleRear = angleMinRear;
-    _maxAngleRear = angleMaxRear;
-    _offsetAngleRear = angleOffsetRear;
+void ServosLeg::setAngleLimits(double minAngle, double maxAngle, bool isLeft) {
 
-    _minAngleFront = angleMinFront;
-    _maxAngleFront = angleMaxFront;
-    _offsetAngleFront = angleOffsetFront;
+    int servoNum = isLeft ? 0 : 1;
+
+    _angleMin[servoNum] = minAngle;
+    _angleMax[servoNum] = maxAngle;
 }
 
-bool ServosLeg::_isServoRawAngleValid(const double rawAngle, const bool isRear) {
+bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution){
 
-    double limMin;
-    double limMax;
-
-    bool inLimit;
-
-    if (isRear) {
-        limMin = _minAngleRear;
-        limMax = _maxAngleRear;
-    } else {
-        limMin = _minAngleFront;
-        limMax = _maxAngleFront;
-    }
-
-    inLimit =  (rawAngle >= limMin ) && (rawAngle <= limMax);
-    
-    if (!inLimit)  {
-        Serial.print(rawAngle);
-        Serial.println(" - Angle out of limits");
-    }
-
-    return (inLimit);
-}
-
-void ServosLeg::invertServo(bool isRear) {
-    if (isRear) {
-        _invertedRear = !_invertedRear;
-    } else {
-        _invertedFront = !_invertedFront;
-    }
-}
-
-bool ServosLeg::_moveServos(const double angleRearDeg, const double angleFrontDeg, const bool hasSolution){
     bool hasSolutionServo = hasSolution;
+    double micros[2];
+    double angles[2];
 
-    double rawAngleRearDeg = angleRearDeg - _offsetAngleRear;
-    double rawAngleFrontDeg = angleFrontDeg - _offsetAngleFront;
-
-    //hasSolutionServo &= _isServoRawAngleValid(rawAngleRearDeg, true);
-    //hasSolutionServo &= _isServoRawAngleValid(rawAngleFrontDeg, false);
-
-    int minMsL;
-    int maxMsL;
+    angles[0] = angleLeftDeg;
+    angles[1] = angleRightDeg;
     
-    int minMsR;
-    int maxMsR;
+    for (int servoNum=0; servoNum < 2; servoNum++) {
+
+        micros[servoNum] = _map_double(angles[servoNum], _angleA[servoNum], _angleB[servoNum], _microsA[servoNum], _microsB[servoNum]);
+        bool inLimitMicros = _microsMin[servoNum] <= micros[servoNum] && micros[servoNum] <= _microsMax[servoNum];
+        if (!inLimitMicros) {
+            Serial.print("Angle out of limit. Micros: "); 
+            Serial.print(_micros[servoNum]);
+            Serial.print(" Servo Num: ");
+            Serial.println(servoNum);
+        }
+
+        bool inLimitAngle = _angleMin[servoNum] <= angles[servoNum] && angles[servoNum] <= _angleMax[servoNum];
+
+        if (!inLimitAngle) {
+            Serial.print("Angle out of limit. Angle: "); 
+            Serial.print(angles[servoNum]);
+            Serial.print(" Servo Num: ");
+            Serial.println(servoNum);
+        }
+
+        hasSolutionServo &= (inLimitMicros & inLimitAngle);
+    }
 
     if (hasSolutionServo) {
 
-        if (!_invertedRear) {
-            minMsL = _minMsRear;
-            maxMsL = _maxMsRear;
-        } else {
-            minMsL = _maxMsRear;
-            maxMsL = _minMsRear;
-        }
-        double microsRear = _map_double(rawAngleRearDeg, _minAngleRear, _maxAngleRear, minMsL, maxMsL);
-        _servoRear.writeMicroseconds(constrain(static_cast<int>(microsRear), _minMsRear, _maxMsRear));
-        //Serial.println(microsRear);
+        for (int servoNum=0; servoNum < 2; servoNum++)  {
 
-        if (!_invertedFront) {
-            minMsR = _minMsFront;
-            maxMsR = _maxMsFront;
-        } else {
-            minMsR = _maxMsFront;
-            maxMsR = _minMsFront;
-        }
-        double microsFront = _map_double(rawAngleFrontDeg, _minAngleFront, _maxAngleFront, minMsR, maxMsR);
-        //Serial.println(microsFront);        
-        _servoFront.writeMicroseconds(constrain(static_cast<int>(microsFront), _minMsFront, _maxMsFront));
+            if (_isI2CServo) {
+                _ptrServoI2C->writeMicroseconds(_pin[servoNum], static_cast<int>(micros[servoNum]));
+            } else {
+                if (servoNum == 0) {
+                    _servoLeft.writeMicroseconds(static_cast<int>(micros[servoNum]));
+                } else if (servoNum == 1) {
+                    _servoRight.writeMicroseconds(static_cast<int>(micros[servoNum]));
+                }
+            }
 
-        //Serial.println(rawAngleRearDeg);
-        //Serial.println(rawAngleFrontDeg);
+            _micros[servoNum] = micros[servoNum];
+        }
+
     }
 
     return(hasSolutionServo);
@@ -141,10 +133,21 @@ bool ServosLeg::_moveServos(const double angleRearDeg, const double angleFrontDe
 
 void ServosLeg::printPointAngle() {
     _kinematics->printContactPointAndAngles();
+    Serial.println(" M(" + String(_micros[0]) + "," + String(_micros[1]) + ")");
 }
 
+double ServosLeg::xContactPoint() {
+    return(_kinematics->xContactPoint());
+}
 
+double ServosLeg::yContactPoint() {
+    return(_kinematics->yContactPoint());
+}
 
+double ServosLeg::leftAngle() {
+    return(_kinematics->LeftLastAngle());
+}
 
-
-
+double ServosLeg::rightAngle() {
+    return(_kinematics->RightLastAngle());
+}

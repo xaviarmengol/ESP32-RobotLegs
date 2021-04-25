@@ -1,11 +1,11 @@
 #include "CalcLegJoints.hpp"
 #include "CircleCircleIntersection.hpp"
 
-constexpr double SAFETY_FACTOR_LEG_SIDE = 0.95;
+constexpr double SAFETY_FACTOR_LEG_SIDE = 1.0;
 
-CalcLegJoints::CalcLegJoints(double xTopJoint, double yTopJoint, double topSegmentLenth, double bottomSegmentLenth, bool isRearSide) {
+CalcLegJoints::CalcLegJoints(double xTopJoint, double yTopJoint, double topSegmentLenth, double bottomSegmentLenth, bool isLeftSide) {
 
-    _isRearSide = isRearSide;
+    _isLeftSide = isLeftSide;
 
     _xTopJoint = xTopJoint;
     _yTopJoint = yTopJoint;
@@ -49,8 +49,19 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
     // Check if angle is too small or too big
     // http://www.ambrsoft.com/TrigoCalc/Triangles/3Points.htm
 
+
     double angleCenter = angleDegTriangleFromSides(_topSegmentLenth, _bottomSegmentLenth, distTopToBottom);
-    if (!( _minAngle <= angleCenter && angleCenter <= _maxAngle)) return(false);
+
+    Serial.print("Angle Intern Leg: ");
+    Serial.println(angleCenter);
+
+    if ( _minAngle > angleCenter || angleCenter > _maxAngle) {
+        
+        Serial.print("Angles in Calc Leg Joint too small or too big: ");
+        Serial.println(angleCenter);
+
+        return(false);
+    }
 
     _hasSolution = circle_circle_intersection(_xTopJoint, _yTopJoint, _topSegmentLenth, xLowJoint, yLowJoint, _bottomSegmentLenth, xCenterJoint1, yCenterJoint1, xCenterJoint2, yCenterJoint2);
 
@@ -59,7 +70,7 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
     if (_hasSolution) {
 
-        if (_isRearSide) {
+        if (_isLeftSide) {
             if (xCenterJoint1 <= xCenterJoint2) {
                 _xCenterJoint = xCenterJoint1; 
                 _yCenterJoint = yCenterJoint1;
@@ -82,15 +93,15 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
         _alfaRad = atan2(static_cast<double>(_yTopJoint - _yCenterJoint), static_cast<double>(_xTopJoint - _xCenterJoint));
 
-        if (!_isRearSide) {
+        if (!_isLeftSide) {
             _alfaRad = PI - _alfaRad;
             if (_alfaRad >= (3.0/4.0) * PI) _alfaRad = _alfaRad - 2.0*PI;
         }
 
         _alfaDeg = _alfaRad * RAD_TO_DEG;
 
-        Serial.print("Angle: ");
-        Serial.println(_alfaRad * RAD_TO_DEG);
+        //Serial.print("Angle: ");
+        //Serial.println(_alfaRad * RAD_TO_DEG);
     }
 
     return(_hasSolution);
@@ -111,7 +122,7 @@ void CalcLegJoints::calcCenterJointFromAngleDeg(double angleDeg) {
     double xDelta = cos(angleDeg * DEG_TO_RAD) * _topSegmentLenth;
     double yDelta = sin(angleDeg * DEG_TO_RAD) * _topSegmentLenth;
 
-    if (_isRearSide) {
+    if (_isLeftSide) {
         _xCenterJoint = _xTopJoint - xDelta; 
         _yCenterJoint = _yTopJoint - yDelta;
     } else {

@@ -7,21 +7,21 @@ class KinematicsInterface {
 
 public:
     virtual void defineGeometry(double distanceBetweenJoints, 
-                                double topSegmentLenthRear, double bottomSegmentLenthRear, double contactPointExtensionRear=0,
-                                double topSegmentLenthFront=0, double bottomSegmentLenthFront=0, double contactPointExtensionFront=0) = 0;
+                                double topSegmentLenthLeft, double bottomSegmentLenthLeft, double contactPointExtensionLeft=0,
+                                double topSegmentLenthRight=0, double bottomSegmentLenthRight=0, double contactPointExtensionRight=0) = 0;
                                 
     virtual bool calcAnglesHasSolution(double relativeXLowJoint, double relativeYLowJoint)=0;
-    virtual bool calcContactPointHasSolution(double RearAngleDeg, double FrontAngleDeg)=0;
+    virtual bool calcContactPointHasSolution(double LeftAngleDeg, double RightAngleDeg)=0;
 
     bool hasSolution();
-    double RearLastAngle();
-    double FrontLastAngle();
+    double LeftLastAngle();
+    double RightLastAngle();
 
     double xContactPoint();
     double yContactPoint();
 
-    double xTopJointRear();
-    double yTopJointRear();
+    double xTopJointLeft();
+    double yTopJointLeft();
 
     void printContactPointAndAngles();
 
@@ -31,11 +31,11 @@ protected:
 
     bool _hasSolution = false;
 
-    double _xTopJointRear = 0;
-    double _yTopJointRear = 0;
+    double _xTopJointLeft = 0;
+    double _yTopJointLeft = 0;
 
-    double _RearAngleDeg = 0;
-    double _FrontAngleDeg = 0;
+    double _LeftAngleDeg = 0;
+    double _RightAngleDeg = 0;
 
     double _xContactPoint = 0;
     double _yContactPoint = 0;

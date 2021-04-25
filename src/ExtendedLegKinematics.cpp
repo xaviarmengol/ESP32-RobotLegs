@@ -2,7 +2,7 @@
 #include "CalcLegJoints.hpp"
 #include "CircleCircleIntersection.hpp"
 
-constexpr double SAFETY_FACTOR = 0.95;
+constexpr double SAFETY_FACTOR = 1.0;
 
 void printPoint (String point, double X, double Y) {
     //Serial.println(point + ": X=" + String(X) + " Y=" + String(Y));
@@ -11,48 +11,51 @@ void printPoint (String point, double X, double Y) {
 ExtendedLegKinematics::ExtendedLegKinematics() {}
 
 void ExtendedLegKinematics::defineGeometry(double distanceBetweenJoints, 
-                                double topSegmentLenthRear, double bottomSegmentLenthRear, double contactPointExtensionRear,
-                                double topSegmentLenthFront, double bottomSegmentLenthFront, double contactPointExtensionFront) {
+                                double topSegmentLenthLeft, double bottomSegmentLenthLeft, double contactPointExtensionLeft,
+                                double topSegmentLenthRight, double bottomSegmentLenthRight, double contactPointExtensionRight) {
 
     _distanceBetweenJoints = distanceBetweenJoints;
 
-    _topSegmentLenthRear = topSegmentLenthRear;
-    _bottomSegmentLenthRear = bottomSegmentLenthRear;
+    _topSegmentLenthLeft = topSegmentLenthLeft;
+    _bottomSegmentLenthLeft = bottomSegmentLenthLeft;
 
-    _contactPointExtensionRear = contactPointExtensionRear;
+    _contactPointExtensionLeft = contactPointExtensionLeft;
     
-    if (topSegmentLenthFront == 0 || bottomSegmentLenthFront == 0) {
+    if (topSegmentLenthRight == 0 || bottomSegmentLenthRight == 0) {
         //Both segments are the same
-        _topSegmentLenthFront = topSegmentLenthRear;
-        _bottomSegmentLenthFront = bottomSegmentLenthRear;
+        _topSegmentLenthRight = topSegmentLenthLeft;
+        _bottomSegmentLenthRight = bottomSegmentLenthLeft;
+        Serial.println ("Both sides are equal");
         
     } else {
-        _topSegmentLenthFront = topSegmentLenthFront;
-        _bottomSegmentLenthFront = bottomSegmentLenthFront;
+        _topSegmentLenthRight = topSegmentLenthRight;
+        _bottomSegmentLenthRight = bottomSegmentLenthRight;
     }
 
-    _contactPointExtensionFront = contactPointExtensionFront;
+    _contactPointExtensionRight = contactPointExtensionRight;
 
     // Setting the origin of the leg coordinate system
     // TODO: Can be changed in the constructor
 
-    _xTopJointRear = 0.0;
-    _yTopJointRear = 0.0;
+    _xTopJointLeft = 0.0;
+    _yTopJointLeft = 0.0;
 
+    _LeftSide = CalcLegJoints(_xTopJointLeft, _yTopJointLeft, _topSegmentLenthLeft, _bottomSegmentLenthLeft, true);
+    _LeftSide.setCenterAngleLimits(MIN_INTERNAL_ANGLE, MAX_INTERNAL_ANGLE);
 
-    _RearSide = CalcLegJoints(_xTopJointRear, _yTopJointRear, _topSegmentLenthRear, _bottomSegmentLenthRear, true);
-    _FrontSide = CalcLegJoints(_xTopJointRear + _distanceBetweenJoints, _yTopJointRear, _topSegmentLenthFront, _bottomSegmentLenthFront, false);
+    _RightSide = CalcLegJoints(_xTopJointLeft + _distanceBetweenJoints, _yTopJointLeft, _topSegmentLenthRight, _bottomSegmentLenthRight, false);
+    _RightSide.setCenterAngleLimits(MIN_INTERNAL_ANGLE, MAX_INTERNAL_ANGLE);
 
-    _RearSideExtended = CalcLegJoints(_xTopJointRear, _yTopJointRear, _topSegmentLenthRear, _bottomSegmentLenthRear + contactPointExtensionRear, true);
-    _FrontSideExtended = CalcLegJoints(_xTopJointRear + _distanceBetweenJoints, _yTopJointRear, _topSegmentLenthFront, _bottomSegmentLenthFront + contactPointExtensionFront, false);
+    _LeftSideExtended = CalcLegJoints(_xTopJointLeft, _yTopJointLeft, _topSegmentLenthLeft, _bottomSegmentLenthLeft + contactPointExtensionLeft, true);
+    _RightSideExtended = CalcLegJoints(_xTopJointLeft + _distanceBetweenJoints, _yTopJointLeft, _topSegmentLenthRight, _bottomSegmentLenthRight + contactPointExtensionRight, false);
 
-    _contactPointIsInFrontLeg = true;
+    _contactPointIsInRightLeg = true;
 
-    if (_contactPointExtensionRear > 0.0 && _contactPointExtensionFront > 0.0){
-        Serial.println("Only one extension point can be set. Rear extension not considered");
-        _contactPointIsInFrontLeg = true;
-    } else if (_contactPointExtensionRear > 0.0) {
-        _contactPointIsInFrontLeg = false;
+    if (_contactPointExtensionLeft > 0.0 && _contactPointExtensionRight > 0.0){
+        Serial.println("Only one extension point can be set. Left extension not considered");
+        _contactPointIsInRightLeg = true;
+    } else if (_contactPointExtensionLeft > 0.0) {
+        _contactPointIsInRightLeg = false;
     }
 }
 
@@ -68,60 +71,66 @@ bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, 
     double xLowJoint = 0;
     double yLowJoint = 0;
 
-    if (_contactPointIsInFrontLeg) {
-        // Find middle joint (Front), using the contact point
-        _hasSolution = _FrontSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
-        printPoint("Mid Front Extended", _FrontSideExtended.xCenterJointLastSol(), _FrontSideExtended.yCenterJointLastSol());
+    if (_contactPointIsInRightLeg) {
+        // Find middle joint (Right), using the contact point
+        _hasSolution = _RightSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
+        printPoint("Mid Right Extended", _RightSideExtended.xCenterJointLastSol(), _RightSideExtended.yCenterJointLastSol());
 
-        // Find low joint (Front), using similar triangles
-        double factor = _contactPointExtensionFront / (_FrontSideExtended.bottomSegmentLenth());
-        xLowJoint = relativeXContactPoint - factor * (relativeXContactPoint - _FrontSideExtended.xCenterJointLastSol());
-        yLowJoint = relativeYContactPoint - factor * (relativeYContactPoint - _FrontSideExtended.yCenterJointLastSol());
+        // Find low joint (Right), using similar triangles
+        double factor = _contactPointExtensionRight / (_RightSideExtended.bottomSegmentLenth());
+        xLowJoint = relativeXContactPoint - factor * (relativeXContactPoint - _RightSideExtended.xCenterJointLastSol());
+        yLowJoint = relativeYContactPoint - factor * (relativeYContactPoint - _RightSideExtended.yCenterJointLastSol());
 
     } else {
-        // Find middle joint (Rear), using the contact point
-        _hasSolution = _RearSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
-        printPoint("Mid Rear Extended", _RearSideExtended.xCenterJointLastSol(), _RearSideExtended.yCenterJointLastSol());
+        // Find middle joint (Left), using the contact point
+        _hasSolution = _LeftSideExtended.calcAngleHasSolution(relativeXContactPoint, relativeYContactPoint);
+        printPoint("Mid Left Extended", _LeftSideExtended.xCenterJointLastSol(), _LeftSideExtended.yCenterJointLastSol());
 
-        // Find low joint (Rear), using similar triangles
-        double factor = _contactPointExtensionRear / (_RearSideExtended.bottomSegmentLenth());
-        xLowJoint = relativeXContactPoint - factor * (relativeXContactPoint - _RearSideExtended.xCenterJointLastSol());
-        yLowJoint = relativeYContactPoint - factor * (relativeYContactPoint - _RearSideExtended.yCenterJointLastSol());
+        // Find low joint (Left), using similar triangles
+        double factor = _contactPointExtensionLeft / (_LeftSideExtended.bottomSegmentLenth());
+        xLowJoint = relativeXContactPoint - factor * (relativeXContactPoint - _LeftSideExtended.xCenterJointLastSol());
+        yLowJoint = relativeYContactPoint - factor * (relativeYContactPoint - _LeftSideExtended.yCenterJointLastSol());
     }
 
     printPoint("LowJoint", xLowJoint, yLowJoint);
 
-    // Find Rear/Front solution, using the Low Joint (not contact point, because is not the same point)
-    _hasSolution &= _FrontSide.calcAngleHasSolution(xLowJoint, yLowJoint);
-    _hasSolution &= _RearSide.calcAngleHasSolution(xLowJoint, yLowJoint);
+    // Find Left/Right solution, using the Low Joint (not contact point, because is not the same point)
+    _hasSolution &= _RightSide.calcAngleHasSolution(xLowJoint, yLowJoint);
+    _hasSolution &= _LeftSide.calcAngleHasSolution(xLowJoint, yLowJoint);
 
-    printPoint("Mid Rear", _RearSide.xCenterJointLastSol(), _RearSide.yCenterJointLastSol());
+    printPoint("Mid Left", _LeftSide.xCenterJointLastSol(), _LeftSide.yCenterJointLastSol());
+    printPoint("Mid Right", _RightSide.xCenterJointLastSol(), _RightSide.yCenterJointLastSol());
 
-    _RearAngleDeg = _RearSide.angleLastSolDeg();
-    _FrontAngleDeg = _FrontSide.angleLastSolDeg();
+    _LeftAngleDeg = _LeftSide.angleLastSolDeg();
+    _RightAngleDeg = _RightSide.angleLastSolDeg();
 
-    printPoint("Angles", _RearAngleDeg, _FrontAngleDeg);
+    printPoint("Angles", _LeftAngleDeg, _RightAngleDeg);
 
-    double distanceBetweenCenterJoints = sqrt(pow(_FrontSide.xCenterJointLastSol() - _RearSide.xCenterJointLastSol(),2) + 
-                         pow(_FrontSide.yCenterJointLastSol() - _RearSide.yCenterJointLastSol(),2));
+    double distanceBetweenCenterJoints = sqrt(pow(_RightSide.xCenterJointLastSol() - _LeftSide.xCenterJointLastSol(),2) + 
+                         pow(_RightSide.yCenterJointLastSol() - _LeftSide.yCenterJointLastSol(),2));
 
-    _hasSolution &= distanceBetweenCenterJoints < (_RearSide.bottomSegmentLenth() + _FrontSide.bottomSegmentLenth()) * SAFETY_FACTOR;
+    _hasSolution &= distanceBetweenCenterJoints < ((_LeftSide.bottomSegmentLenth() + _RightSide.bottomSegmentLenth()) * SAFETY_FACTOR);
 
     // Check if angle too big or too small
 
-    double angleBottom = angleDegTriangleFromSides(_RearSide.bottomSegmentLenth()
-                                    , _FrontSide.bottomSegmentLenth(), distanceBetweenCenterJoints);
+    
+    double angleBottom = angleDegTriangleFromSides(_LeftSide.bottomSegmentLenth()
+                                    , _RightSide.bottomSegmentLenth(), distanceBetweenCenterJoints);
+
+    Serial.print("Angle Bottom: ");
+    Serial.println(angleBottom);
+
     _hasSolution &= ( _minAngleBottom <= angleBottom  && angleBottom <= _maxAngleBottom);
+    
 
     return(_hasSolution);
 }
 
 
-bool ExtendedLegKinematics::calcContactPointHasSolution(double RearAngleDeg, double FrontAngleDeg) {
+bool ExtendedLegKinematics::calcContactPointHasSolution(double LeftAngleDeg, double RightAngleDeg) {
 
-    //return(_RearSide.calcContactPointHasSolution(_FrontSide, RearAngleDeg, FrontAngleDeg));
-
-    bool hasSolution;
+    bool hasSolution = false;
+    bool allAngleLimitsAreOk = false;
 
     double x1;
     double y1;
@@ -131,22 +140,22 @@ bool ExtendedLegKinematics::calcContactPointHasSolution(double RearAngleDeg, dou
     double xLowJoint;
     double yLowJoint;
 
-    _RearSide.calcCenterJointFromAngleDeg(RearAngleDeg);
-    _FrontSide.calcCenterJointFromAngleDeg(FrontAngleDeg);
+    _LeftSide.calcCenterJointFromAngleDeg(LeftAngleDeg);
+    _RightSide.calcCenterJointFromAngleDeg(RightAngleDeg);
 
     //http://paulbourke.net/geometry/circlesphere/
 
-    hasSolution = circle_circle_intersection(_RearSide.xCenterJointLastSol(), 
-                                            _RearSide.yCenterJointLastSol(), 
-                                            _RearSide.bottomSegmentLenth(),
-                                            _FrontSide.xCenterJointLastSol(), 
-                                            _FrontSide.yCenterJointLastSol(), 
-                                            _FrontSide.bottomSegmentLenth(),
+    hasSolution = circle_circle_intersection(_LeftSide.xCenterJointLastSol(), 
+                                            _LeftSide.yCenterJointLastSol(), 
+                                            _LeftSide.bottomSegmentLenth(),
+                                            _RightSide.xCenterJointLastSol(), 
+                                            _RightSide.yCenterJointLastSol(), 
+                                            _RightSide.bottomSegmentLenth(),
                                             x1, y1, x2, y2);
 
     // Find low solution
     if (hasSolution) {
-        if (y1 <= _RearSide.yCenterJointLastSol()) {
+        if (y1 <= y2) {
             xLowJoint = x1;
             yLowJoint = y1;
         } else {
@@ -154,13 +163,17 @@ bool ExtendedLegKinematics::calcContactPointHasSolution(double RearAngleDeg, dou
             yLowJoint = y2;
         }
         // Find contact point, knowing the distance from contact point to low joint (using similar triangles)
-        double factor = _contactPointExtensionFront / _FrontSide.bottomSegmentLenth();
+        double factor = _contactPointExtensionRight / _RightSide.bottomSegmentLenth();
 
-        _xContactPoint = xLowJoint - factor * (_FrontSide.xCenterJointLastSol() - xLowJoint);
-        _yContactPoint = yLowJoint - factor * ( _FrontSide.yCenterJointLastSol() - yLowJoint);
+        _xContactPoint = xLowJoint - factor * (_RightSide.xCenterJointLastSol() - xLowJoint);
+        _yContactPoint = yLowJoint - factor * ( _RightSide.yCenterJointLastSol() - yLowJoint);
+
+        // Required to check that all intern angles are inside limits
+        allAngleLimitsAreOk = calcAnglesHasSolution(_xContactPoint, _yContactPoint);
     }
 
-    return (hasSolution);
+    return (hasSolution && allAngleLimitsAreOk);
 }
+
 
 

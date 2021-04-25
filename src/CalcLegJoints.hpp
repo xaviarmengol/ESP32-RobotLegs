@@ -7,15 +7,15 @@
 class CalcLegJoints {
 private:
 
-    bool _isRearSide;
+    bool _isLeftSide;
 
     double _topSegmentLenth;
     double _bottomSegmentLenth;
     double _xTopJoint;
     double _yTopJoint;
 
-    double _minAngle;
-    double _maxAngle;
+    double _minAngle=30;
+    double _maxAngle=170;
 
     double _xLowJoint;
     double _yLowJoint;
@@ -29,7 +29,7 @@ private:
     bool _hasSolution;
 
 public:
-    CalcLegJoints(double xTopJoint=0, double yTopJoint=0, double topSegmentLenth=0, double bottomSegmentLenth=0, bool isRearSide=true);
+    CalcLegJoints(double xTopJoint=0, double yTopJoint=0, double topSegmentLenth=0, double bottomSegmentLenth=0, bool isLeftSide=true);
 
     void setCenterAngleLimits (double minAngle = 30.0, double maxAngle = 170.0);
 

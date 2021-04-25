@@ -6,12 +6,12 @@ bool KinematicsInterface::hasSolution(){
     return(_hasSolution);
 }
 
-double KinematicsInterface::RearLastAngle(){
-    return(_RearAngleDeg);
+double KinematicsInterface::LeftLastAngle(){
+    return(_LeftAngleDeg);
 }
 
-double KinematicsInterface::FrontLastAngle(){
-    return(_FrontAngleDeg);
+double KinematicsInterface::RightLastAngle(){
+    return(_RightAngleDeg);
 }
 
 double KinematicsInterface::xContactPoint() {
@@ -22,18 +22,21 @@ double KinematicsInterface::yContactPoint() {
     return(_yContactPoint);
 }
 
-double KinematicsInterface::xTopJointRear() {
-    return(_xTopJointRear);
+double KinematicsInterface::xTopJointLeft() {
+    return(_xTopJointLeft);
 }
 
-double KinematicsInterface::yTopJointRear() {
-    return(_yTopJointRear);
+double KinematicsInterface::yTopJointLeft() {
+    return(_yTopJointLeft);
 }
 
 void KinematicsInterface::printContactPointAndAngles() {
 
+
     _printString = "P(" + String(_xContactPoint) + "," + String(_yContactPoint) + ") -";
-    _printString += " A(" + String(_RearAngleDeg) + "," + String(_FrontAngleDeg) + ")";
-    Serial.println(_printString);
+    _printString += " A(" + String(_LeftAngleDeg) + "," + String(_RightAngleDeg) + ")";
+
+    Serial.println("----");    
+    Serial.print(_printString);
     
 }

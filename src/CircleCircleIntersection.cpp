@@ -99,10 +99,17 @@ void run_test(double x0, double y0, double r0,
 }
 
 
-double angleDegTriangleFromSides(double oneSide, double otherSide, double opositeSide) {
+double angleDegTriangleFromSides(const double oneSide, const double otherSide, const double opositeSide) {
 
     double angle = acos((oneSide*oneSide + otherSide*otherSide - opositeSide*opositeSide) / 
                         ( 2.0 * oneSide * otherSide));
+
+    //Serial.print("Inside angleDegTriangle: ");
+    //Serial.println(angle * RAD_TO_DEG);
+    //Serial.println(oneSide);
+    //Serial.println(otherSide);
+    //Serial.println(opositeSide);
+    
 
     return (angle * RAD_TO_DEG);
 
