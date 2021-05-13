@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "CircleCircleIntersection.hpp"
+//#include "CircleCircleIntersection.hpp"
+#include "Point.hpp"
 
 constexpr int MAX_POINTS = 10;
 constexpr double DELTA_DIST = 0.5; // To avoid rounding errors comparing doubles
@@ -17,7 +18,8 @@ private:
 
     int _stepsInCurrentSegment = 0;
 
-    double _pathPoints[4][MAX_POINTS]; // X, Y, Vel, Type
+    double _pathPoints[3][MAX_POINTS]; // X, Y, Vel
+    int _typePathPoint[MAX_POINTS];
     int _numPathPoints = 0;
     
     void _calcSegmentDeltaMovements();
@@ -25,16 +27,21 @@ private:
 
 
 public:
+    PathGenerator();
     PathGenerator(int period);
     PathGenerator(const PathGenerator& originPath, bool reverseX = false);
     ~PathGenerator();
-    bool addPathPoint(double x, double y, double v, double type = 0);
+    bool addPathPoint(double x, double y, double v, int type = 0);
 
     // Calc the next Point every Period.
-    point calcNextPoint();
+    Vector2 calcNextPoint();
     void setStartingPathPoint(int startingPathPoint);
     
 };
+
+PathGenerator::PathGenerator() {
+    _periodMs = 100;
+}
 
 PathGenerator::PathGenerator(int periodMs) {
     _periodMs = periodMs;
@@ -52,7 +59,8 @@ PathGenerator::PathGenerator(const PathGenerator& originPath, bool reverseX) {
         double sign = reverseX ? -1.0 : 1.0;
         _pathPoints[0][numPoint] = sign * _pathPoints[0][numPoint];
 
-        for (int i=1; i<4; i++) _pathPoints[i][numPoint] = originPath._pathPoints[i][numPoint];
+        for (int i=1; i<3; i++) _pathPoints[i][numPoint] = originPath._pathPoints[i][numPoint];
+        _typePathPoint[numPoint] = originPath._typePathPoint[numPoint];
     }
 }
 
@@ -63,7 +71,7 @@ void PathGenerator::setStartingPathPoint(int startingPathPoint) {
     }
 }
 
-bool PathGenerator::addPathPoint(double x, double y, double v, double type) {
+bool PathGenerator::addPathPoint(double x, double y, double v, int type) {
     bool allOk = false;
 
     if (_numPathPoints<MAX_POINTS) {
@@ -71,7 +79,7 @@ bool PathGenerator::addPathPoint(double x, double y, double v, double type) {
         _pathPoints[0][_numPathPoints] = x;
         _pathPoints[1][_numPathPoints] = y;
         _pathPoints[2][_numPathPoints] = v;
-        _pathPoints[3][_numPathPoints] = type;
+        _typePathPoint[_numPathPoints] = type;
 
         _numPathPoints++;   
         allOk = true; 
@@ -93,24 +101,23 @@ int PathGenerator::_nextPathPoint(const int currentPoint) {
 }
 
 
-point PathGenerator::calcNextPoint() {
+Vector2 PathGenerator::calcNextPoint() {
 
-    if (_numPathPoints <= 1) return(point(0,0)); // Minimum two path points are needed to calc the next points
+    if (_numPathPoints <= 1) return(Vector2(0,0)); // Minimum two path points are needed to calc the next points
 
-    point nextPoint(0,0);
+    Vector2 nextPoint(0,0);
+
+    int delayTime = _typePathPoint[_currentPathPoint];
 
     _stepsInCurrentSegment++;
 
-    int nextPathPoint = _nextPathPoint(_currentPathPoint);
+    int nextPathPointIndex = _nextPathPoint(_currentPathPoint);
 
-    double XPathPoint = _pathPoints[0][_currentPathPoint];
-    double YPathPoint = _pathPoints[1][_currentPathPoint];
-
-    double XNextPathPoint = _pathPoints[0][nextPathPoint];
-    double YNextPathPoint = _pathPoints[1][nextPathPoint];
-
-    double deltaX = XNextPathPoint - XPathPoint;
-    double deltaY =YNextPathPoint - YPathPoint;
+    Vector2 pathPoint = {_pathPoints[0][_currentPathPoint], _pathPoints[1][_currentPathPoint]};
+    Vector2 nextPathPoint = {_pathPoints[0][nextPathPointIndex], _pathPoints[1][nextPathPointIndex]};
+    Vector2 delta = nextPathPoint - pathPoint;
+    double deltaX = delta.x;
+    double deltaY = delta.y;
 
     bool deltaXIsPositive = deltaX>DELTA_DIST;
     bool deltaYIsPositive = deltaY>DELTA_DIST;
@@ -118,44 +125,44 @@ point PathGenerator::calcNextPoint() {
     bool deltaXIsNegative = deltaX<-1.0*DELTA_DIST;
     bool deltaYIsNegative = deltaY<-1.0*DELTA_DIST;
 
-    //bool deltaXIsFlat = !deltaXIsPositive && !deltaXIsNegative;
-    //bool deltaYIsFlat = !deltaYIsPositive && !deltaYIsNegative;
+    Vector2 deltaNorm;
 
-    double distanceBetweenPathPoints = sqrt(pow(deltaX,2) + pow(deltaY,2));
+    if (delayTime == 0) { 
+        deltaNorm = delta.Normalized();
+    } else {
+        deltaNorm = Vector2(0,0);
+    }
 
-    //Serial.print("distanceBetweenPathPoints: ");Serial.println(distanceBetweenPathPoints);
-
-    double deltaXNorm = deltaX / distanceBetweenPathPoints; 
-    double deltaYNorm = deltaY / distanceBetweenPathPoints;
-
+    // Total space = velocity * Period * steps
     double distanceTotal = (_pathPoints[2][_currentPathPoint] * _periodMs * _stepsInCurrentSegment) / 1000.0;
 
-    double deltaXTotal = deltaXNorm * distanceTotal; // deltaNorma * Vel * Period
-    double deltaYTotal = deltaYNorm * distanceTotal; // deltaNorma * Vel * Period
+    Vector2 deltaTotal = deltaNorm * distanceTotal;
 
-    double XNextPoint = XPathPoint + deltaXTotal;
-    double YNextPoint = YPathPoint + deltaYTotal;
+    Vector2 candidateNextPoint = pathPoint + deltaTotal;
 
-    double distXToNextPath = XNextPoint - XNextPathPoint;
-    double distYToNextPath = YNextPoint - YNextPathPoint;
+    Vector2 distToNextPath = candidateNextPoint - nextPathPoint;
 
-    bool overX = (deltaXIsPositive && (distXToNextPath > DELTA_DIST)) || 
-                 (deltaXIsNegative && (distXToNextPath < DELTA_DIST));
+    bool overX = (deltaXIsPositive && (distToNextPath.x > DELTA_DIST)) || 
+                 (deltaXIsNegative && (distToNextPath.x < DELTA_DIST));
 
-    bool overY = (deltaYIsPositive && (distYToNextPath > DELTA_DIST)) || 
-                 (deltaYIsNegative && (distYToNextPath < DELTA_DIST));
+    bool overY = (deltaYIsPositive && (distToNextPath.y > DELTA_DIST)) || 
+                 (deltaYIsNegative && (distToNextPath.y < DELTA_DIST));
+
+    bool overTime = ( (_periodMs * _stepsInCurrentSegment) >= delayTime) && delayTime > 0;
 
     // Are we over the target point
 
-    if (overX || overY) {
-        nextPoint.x = XNextPathPoint;
-        nextPoint.y = YNextPathPoint;
-        _currentPathPoint = nextPathPoint;
+    if (overX || overY || overTime) {
+        //nextPoint.x = XNextPathPoint;
+        //nextPoint.y = YNextPathPoint;
+        nextPoint = nextPathPoint;
+        _currentPathPoint = nextPathPointIndex;
         _stepsInCurrentSegment = 0;
 
     } else{
-        nextPoint.x = XNextPoint;
-        nextPoint.y = YNextPoint;
+        //nextPoint.x = XNextPoint;
+        //nextPoint.y = YNextPoint;
+        nextPoint = candidateNextPoint;
     }
 
     return(nextPoint);

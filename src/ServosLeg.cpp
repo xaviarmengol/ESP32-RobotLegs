@@ -17,8 +17,8 @@ bool ServosLeg::attachPins(const int pinLeft, const int pinRight, Adafruit_PWMSe
     _pin[1] = pinRight;
 
     if (!_isI2CServo) {
-        allOk &= (_servoLeft.attach(pinLeft) == 1);
-        allOk &= (_servoRight.attach(pinRight) == 1);
+        allOk &= (_servo[0].attach(pinLeft) == 1);
+        allOk &= (_servo[1].attach(pinRight) == 1);
     } 
 
     return(allOk);
@@ -42,8 +42,12 @@ bool ServosLeg::moveToPoint( const double relativeXLowJoint, const double relati
     return(hasSolution);
 }
 
-bool ServosLeg::moveToPoint (const point& relativePoint) {
+bool ServosLeg::moveToPoint (const Vector2& relativePoint) {
     return(moveToPoint(relativePoint.x, relativePoint.y));
+}
+
+bool ServosLeg::relativeMovePoint (const double addX, const double addY) {
+    return(moveToPoint(_kinematics->xContactPoint() + addX, _kinematics->yContactPoint() + addY));
 }
 
 bool ServosLeg::moveToAngles(const double LeftAngleDeg, const double RightAngleDeg, bool forceServo) {
@@ -52,6 +56,9 @@ bool ServosLeg::moveToAngles(const double LeftAngleDeg, const double RightAngleD
     return(hasSolution || forceServo);
 }
 
+bool ServosLeg::relativeMoveToAngles (const double addAngleLeft, const double addAngleRight, bool forceServo) {
+    return(moveToAngles(_kinematics->LeftLastAngle() + addAngleLeft, _kinematics->RightLastAngle() + addAngleRight, forceServo));
+}
 
 double ServosLeg::_map_double(double x, double in_min, double in_max, double out_min, double out_max){
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -114,13 +121,19 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
         for (int servoNum=0; servoNum < 2; servoNum++)  {
 
             if (_isI2CServo) {
-                _ptrServoI2C->writeMicroseconds(_pin[servoNum], static_cast<int>(micros[servoNum]));
-            } else {
-                if (servoNum == 0) {
-                    _servoLeft.writeMicroseconds(static_cast<int>(micros[servoNum]));
-                } else if (servoNum == 1) {
-                    _servoRight.writeMicroseconds(static_cast<int>(micros[servoNum]));
+
+                _microsInt[servoNum] = static_cast<int>(micros[servoNum]);
+
+                // To avoid overload I2C if there is no change on leg target.
+                // TODO: Refresh the target every #ms in case of any problem.
+                
+                if (_microsInt[servoNum] != _lastMicrosInt[servoNum]) {
+                    _ptrServoI2C->writeMicroseconds(_pin[servoNum], _microsInt[servoNum]);
+                    _lastMicrosInt[servoNum] = _microsInt[servoNum];
                 }
+
+            } else {
+                _servo[servoNum].writeMicroseconds(static_cast<int>(micros[servoNum]));
             }
 
             _micros[servoNum] = micros[servoNum];
@@ -142,6 +155,10 @@ double ServosLeg::xContactPoint() {
 
 double ServosLeg::yContactPoint() {
     return(_kinematics->yContactPoint());
+}
+
+Vector2 ServosLeg::contactPoint() {
+    return(Vector2(_kinematics->xContactPoint(), _kinematics->yContactPoint()));
 }
 
 double ServosLeg::leftAngle() {

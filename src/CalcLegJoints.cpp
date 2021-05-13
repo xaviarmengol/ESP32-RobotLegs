@@ -52,8 +52,8 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
     double angleCenter = angleDegTriangleFromSides(_topSegmentLenth, _bottomSegmentLenth, distTopToBottom);
 
-    Serial.print("Angle Intern Leg: ");
-    Serial.println(angleCenter);
+    //Serial.print("Angle Intern Leg: ");
+    //Serial.println(angleCenter);
 
     if ( _minAngle > angleCenter || angleCenter > _maxAngle) {
         

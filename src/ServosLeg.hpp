@@ -5,12 +5,12 @@
 #include <Adafruit_PWMServoDriver.h>
 
 #include "KinematicsInterface.hpp"
-#include "CircleCircleIntersection.hpp"
+//#include "CircleCircleIntersection.hpp"
+#include "Point.hpp"
 
 class ServosLeg {
 private:
-    Servo _servoLeft;
-    Servo _servoRight;
+    Servo _servo[2];
     Adafruit_PWMServoDriver* _ptrServoI2C;
     
     bool _isI2CServo = false;
@@ -20,6 +20,8 @@ private:
     Kinematics _kinematics;
 
     double _micros[2];
+    int _microsInt[2];
+    int _lastMicrosInt[2] = {0 , 0};
 
     double _microsA[2];
     double _microsB[2];
@@ -42,14 +44,18 @@ public:
     bool attachPins(const int pinLeft, const int pinRight, Adafruit_PWMServoDriver* servoI2C = nullptr);
     bool attachKinematics(Kinematics& kinematics);
     bool moveToPoint(const double relativeXLowJoint, const double relativeYLowJoint);
-    bool moveToPoint (const point& relativePoint);
+    bool moveToPoint (const Vector2& relativePoint);
+    bool relativeMovePoint (const double addX, const double addY);
     bool moveToAngles(const double angleLeft, const double angleRight, bool forceServo=false);
+    bool relativeMoveToAngles (const double addAngleLeft, const double addAngleRight, bool forceServo=false);
     void calibrateServo(double angleA, double microsA, double angleB, double microsB, double minMicros, double maxMicros, bool isLeft);
     void setAngleLimits(double minAngle, double maxAngle, bool isLeft);
     void printPointAngle();
 
     double xContactPoint();
     double yContactPoint();
+
+    Vector2 contactPoint();
 
     double leftAngle();
     double rightAngle();

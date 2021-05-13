@@ -65,8 +65,6 @@ ExtendedLegKinematics::~ExtendedLegKinematics() {
 
 
 bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, double relativeYContactPoint) {
-    _xContactPoint = relativeXContactPoint;
-    _yContactPoint = relativeYContactPoint;
 
     double xLowJoint = 0;
     double yLowJoint = 0;
@@ -117,12 +115,16 @@ bool ExtendedLegKinematics::calcAnglesHasSolution(double relativeXContactPoint, 
     double angleBottom = angleDegTriangleFromSides(_LeftSide.bottomSegmentLenth()
                                     , _RightSide.bottomSegmentLenth(), distanceBetweenCenterJoints);
 
-    Serial.print("Angle Bottom: ");
-    Serial.println(angleBottom);
+    //Serial.print("Angle Bottom: ");
+    //Serial.println(angleBottom);
 
     _hasSolution &= ( _minAngleBottom <= angleBottom  && angleBottom <= _maxAngleBottom);
-    
 
+    if (_hasSolution) {
+        _xContactPoint = relativeXContactPoint;
+        _yContactPoint = relativeYContactPoint;
+    }
+    
     return(_hasSolution);
 }
 

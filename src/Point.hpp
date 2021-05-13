@@ -1,74 +1,62 @@
 //Start of Vectors.h file
+#pragma once
 
 #include <cmath>
-
-
-#ifndef FLYNNVECTOR_H
-#define FLYNNVECTOR_H
-
 #define pi 3.14159
 
-class FlynnVector3;
+class Vector3;
 
-class FlynnVector2{
+class Vector2{
 public:
-	float x, y;
-	FlynnVector2() : x(0), y(0){};
-	FlynnVector2(float X, float Y) : x(X), y(Y){}
+	double x, y;
+	Vector2() : x(0), y(0){};
+	Vector2(double X, double Y) : x(X), y(Y){}
 
-	float GetLength() const { return sqrt((x * x) + (y * y)); }
+	double GetLength() const { return sqrt((x * x) + (y * y)); }
 	void Normalize(){ *this /= GetLength(); }
-	FlynnVector2 Normalized(){ return *this /= GetLength(); }
-	float Dot(FlynnVector2 rightVec) const { return (x * rightVec.x) + (y * rightVec.y); }
-	float Angle(FlynnVector2);
-	float GreaterAngle(FlynnVector2 rightVec){ return float((2 * pi) - Angle(rightVec)); }
-	void Vec3ToVec2(FlynnVector3);
+	Vector2 Normalized(){ return *this /= GetLength(); }
+	double Dot(Vector2 rightVec) const { return (x * rightVec.x) + (y * rightVec.y); }
+	double Angle(Vector2);
+	double GreaterAngle(Vector2 rightVec){ return double((2 * pi) - Angle(rightVec)); }
+	void Vec3ToVec2(Vector3);
 
-	FlynnVector2 operator+ (FlynnVector2) const;
-	FlynnVector2 operator- (FlynnVector2) const;
-	FlynnVector2 operator* (float) const;
-	FlynnVector2 operator/ (float) const;
-	FlynnVector2& operator+= (FlynnVector2);
-	FlynnVector2& operator-= (FlynnVector2);
-	FlynnVector2& operator*= (float);
-	FlynnVector2& operator/= (float);
-	FlynnVector2& operator= (FlynnVector2);
-	bool operator== (const FlynnVector2&) const;
-	bool operator!= (const FlynnVector2&) const;
+	Vector2 operator+ (Vector2) const;
+	Vector2 operator- (Vector2) const;
+	Vector2 operator* (double) const;
+	Vector2 operator/ (double) const;
+	Vector2& operator+= (Vector2);
+	Vector2& operator-= (Vector2);
+	Vector2& operator*= (double);
+	Vector2& operator/= (double);
+	Vector2& operator= (Vector2);
+	bool operator== (const Vector2&) const;
+	bool operator!= (const Vector2&) const;
 };
 
-class FlynnVector3{
+class Vector3{
 public:
-	float x, y, z;
-	FlynnVector3() : x(0), y(0), z(0){};
-	FlynnVector3(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
+	double x, y, z;
+	Vector3() : x(0), y(0), z(0){};
+	Vector3(double X, double Y, double Z) : x(X), y(Y), z(Z) {}
 
-	float GetLength() const { return sqrt((x * x) + (y * y) + (z * z)); }
+	double GetLength() const { return sqrt((x * x) + (y * y) + (z * z)); }
 	void Normalize(){ *this /= GetLength(); }
-	FlynnVector3 Normalized(){ return *this /= GetLength(); }
-	float Dot(FlynnVector3 rightVec) const { return (x * rightVec.x) + (y * rightVec.y) + (z * rightVec.z); }
-	FlynnVector3 Cross(FlynnVector3);
-	float Angle(FlynnVector3);
-	float GreaterAngle(FlynnVector3 rightVec){ return float((2 * pi) - Angle(rightVec)); }
-	void Vec2ToVec3(FlynnVector2 rightVec){ x = rightVec.x, y = rightVec.y, z = 0; }
+	Vector3 Normalized(){ return *this /= GetLength(); }
+	double Dot(Vector3 rightVec) const { return (x * rightVec.x) + (y * rightVec.y) + (z * rightVec.z); }
+	Vector3 Cross(Vector3);
+	double Angle(Vector3);
+	double GreaterAngle(Vector3 rightVec){ return double((2 * pi) - Angle(rightVec)); }
+	void Vec2ToVec3(Vector2 rightVec){ x = rightVec.x, y = rightVec.y, z = 0; }
 
-	FlynnVector3 operator+ (FlynnVector3) const;
-	FlynnVector3 operator- (FlynnVector3) const;
-	FlynnVector3 operator* (float) const;
-	FlynnVector3 operator/ (float) const;
-	FlynnVector3& operator+= (FlynnVector3);
-	FlynnVector3& operator-= (FlynnVector3);
-	FlynnVector3& operator*= (float);
-	FlynnVector3& operator/= (float);
-	FlynnVector3& operator= (FlynnVector3);
-	bool operator== (const FlynnVector3&) const;
-	bool operator!= (const FlynnVector3&) const;
+	Vector3 operator+ (Vector3) const;
+	Vector3 operator- (Vector3) const;
+	Vector3 operator* (double) const;
+	Vector3 operator/ (double) const;
+	Vector3& operator+= (Vector3);
+	Vector3& operator-= (Vector3);
+	Vector3& operator*= (double);
+	Vector3& operator/= (double);
+	Vector3& operator= (Vector3);
+	bool operator== (const Vector3&) const;
+	bool operator!= (const Vector3&) const;
 };
-
-class FlynnVector4 : public FlynnVector3{
-public:
-	float w;
-
-};
-
-#endif 
