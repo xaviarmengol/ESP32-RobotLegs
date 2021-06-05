@@ -2,11 +2,11 @@
 #include "CalcLegJoints.hpp"
 #include "KinematicsInterface.hpp"
 
-#define MAX_INTERNAL_ANGLE 170
-#define MIN_INTERNAL_ANGLE 60
+#define MAX_INTERNAL_ANGLE 180
+#define MIN_INTERNAL_ANGLE 20
 
-#define MAX_BOTTOM_ANGLE 160
-#define MIN_BOTTOM_ANGLE 20
+#define MAX_BOTTOM_ANGLE 180
+#define MIN_BOTTOM_ANGLE 10
 
 class ExtendedLegKinematics : public KinematicsInterface {
 

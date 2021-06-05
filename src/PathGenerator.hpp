@@ -157,6 +157,8 @@ Vector2 PathGenerator::calcNextPoint() {
         //nextPoint.y = YNextPathPoint;
         nextPoint = nextPathPoint;
         _currentPathPoint = nextPathPointIndex;
+        Serial.print("Number steps in sequence: --------> ");
+        Serial.println(_stepsInCurrentSegment);
         _stepsInCurrentSegment = 0;
 
     } else{

@@ -52,6 +52,12 @@ bool ServosLeg::relativeMovePoint (const double addX, const double addY) {
 
 bool ServosLeg::moveToAngles(const double LeftAngleDeg, const double RightAngleDeg, bool forceServo) {
     bool hasSolution = _kinematics->calcContactPointHasSolution(LeftAngleDeg, RightAngleDeg);
+
+    // TODO: Check that directkinematics is working well
+    // bool hasSolution=true;
+
+    
+    
     hasSolution &= _moveServos(LeftAngleDeg, RightAngleDeg, hasSolution || forceServo);
     return(hasSolution || forceServo);
 }
@@ -87,7 +93,7 @@ void ServosLeg::setAngleLimits(double minAngle, double maxAngle, bool isLeft) {
 bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution){
 
     bool hasSolutionServo = hasSolution;
-    double micros[2];
+    double microsCandidate[2];
     double angles[2];
 
     angles[0] = angleLeftDeg;
@@ -95,8 +101,9 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
     
     for (int servoNum=0; servoNum < 2; servoNum++) {
 
-        micros[servoNum] = _map_double(angles[servoNum], _angleA[servoNum], _angleB[servoNum], _microsA[servoNum], _microsB[servoNum]);
-        bool inLimitMicros = _microsMin[servoNum] <= micros[servoNum] && micros[servoNum] <= _microsMax[servoNum];
+        microsCandidate[servoNum] = _map_double(angles[servoNum], _angleA[servoNum], _angleB[servoNum], _microsA[servoNum], _microsB[servoNum]);
+        bool inLimitMicros = _microsMin[servoNum] <= microsCandidate[servoNum] && microsCandidate[servoNum] <= _microsMax[servoNum];
+        
         if (!inLimitMicros) {
             Serial.print("Angle out of limit. Micros: "); 
             Serial.print(_micros[servoNum]);
@@ -120,23 +127,22 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
 
         for (int servoNum=0; servoNum < 2; servoNum++)  {
 
+            _micros[servoNum] = microsCandidate[servoNum];
+            _microsInt[servoNum] = static_cast<int>(microsCandidate[servoNum]);
+
             if (_isI2CServo) {
-
-                _microsInt[servoNum] = static_cast<int>(micros[servoNum]);
-
                 // To avoid overload I2C if there is no change on leg target.
                 // TODO: Refresh the target every #ms in case of any problem.
-                
+
                 if (_microsInt[servoNum] != _lastMicrosInt[servoNum]) {
                     _ptrServoI2C->writeMicroseconds(_pin[servoNum], _microsInt[servoNum]);
-                    _lastMicrosInt[servoNum] = _microsInt[servoNum];
                 }
 
             } else {
-                _servo[servoNum].writeMicroseconds(static_cast<int>(micros[servoNum]));
+                _servo[servoNum].writeMicroseconds(_microsInt[servoNum]);
             }
 
-            _micros[servoNum] = micros[servoNum];
+            _lastMicrosInt[servoNum] = _microsInt[servoNum];
         }
 
     }

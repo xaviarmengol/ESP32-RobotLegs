@@ -157,6 +157,10 @@ bool ExtendedLegKinematics::calcContactPointHasSolution(double LeftAngleDeg, dou
 
     // Find low solution
     if (hasSolution) {
+
+        _LeftAngleDeg = LeftAngleDeg;
+        _RightAngleDeg = RightAngleDeg;
+
         if (y1 <= y2) {
             xLowJoint = x1;
             yLowJoint = y1;

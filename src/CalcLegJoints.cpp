@@ -95,7 +95,7 @@ bool CalcLegJoints::calcAngleHasSolution(double xLowJoint, double yLowJoint) {
 
         if (!_isLeftSide) {
             _alfaRad = PI - _alfaRad;
-            if (_alfaRad >= (3.0/4.0) * PI) _alfaRad = _alfaRad - 2.0*PI;
+            if (_alfaRad >= (160.0 * DEG_TO_RAD)) _alfaRad = _alfaRad - 2.0*PI;
         }
 
         _alfaDeg = _alfaRad * RAD_TO_DEG;

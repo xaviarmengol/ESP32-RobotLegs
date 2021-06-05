@@ -36,7 +36,7 @@ void KinematicsInterface::printContactPointAndAngles() {
     _printString = "P(" + String(_xContactPoint) + "," + String(_yContactPoint) + ") -";
     _printString += " A(" + String(_LeftAngleDeg) + "," + String(_RightAngleDeg) + ")";
 
-    Serial.println("----");    
+    Serial.println("");    
     Serial.print(_printString);
     
 }

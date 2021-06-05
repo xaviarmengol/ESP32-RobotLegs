@@ -14,6 +14,8 @@
 #define PERIOD_CALC 80
 #define NUM_LEGS 4
 
+#define DIST_LEGS 45
+
 // 0 = FR
 // 1 = RR
 // 2 = FL
@@ -36,7 +38,7 @@ char c;
 Vector2 destinationPoint[NUM_LEGS];
 
 double R2L (double value) {
-    return(40 - value);
+    return(DIST_LEGS - value);
 }
 
 void setup() {
@@ -58,18 +60,16 @@ void setup() {
     servoI2C.setPWMFreq(50);  // Analog servos run at ~50 Hz updates
 
     // Create walking sequence
-
-
-
-    double fordwardDist = 150.0;
-    double height = -150;
-    double extraLift = 30;
+    
+    double fordwardDist = 160.0;
+    double height = -140;
+    double extraLift = 35;
 
     double velWalking = 10.0 * generalVelocity;
     double velCommingBack = 40.0 * generalVelocity;
 
-    double frontToBack = -60.0;
-    double backToFront = 60.0 + 40.0;
+    double frontToBack = -80.0;
+    double backToFront = 80.0 + DIST_LEGS;
 
     // FR Front Right = 0
 
@@ -102,54 +102,87 @@ void setup() {
 
     // Define geometry
 
-    legKin[0]->defineGeometry(40.0, 57.0, 104.0, 0.0, 80.0, 80.0, 35.0);
-    legKin[1]->defineGeometry(40.0, 80.0, 80.0, 35.0, 57.0, 104.0, 0.0);
+    legKin[0]->defineGeometry(DIST_LEGS, 73.0, 80.0, 0.0, 73.0, 80.0, 33.0 + 3.0);
+    legKin[1]->defineGeometry(DIST_LEGS, 73.0, 80.0, 33.0 + 3.0, 73.0, 80.0, 0.0);
 
-    legKin[2]->defineGeometry(40.0, 80.0, 80.0, 35.0, 57.0, 104.0, 0.0);
-    legKin[3]->defineGeometry(40.0, 57.0, 104.0, 0.0, 80.0, 80.0, 35.0);
-
+    legKin[2]->defineGeometry(DIST_LEGS, 73.0, 80.0, 33.0 + 3.0, 73.0, 80.0, 0.0);
+    legKin[3]->defineGeometry(DIST_LEGS, 73.0, 80.0, 0.0, 73.0, 80.0, 33.0 + 3.0);
 
     // Define attached servos:
 
     // ESP32 Servos -> Recommend only the following pins 2,4,12-19,21-23,25-27,32-33
     // Servo Adapter -> 0 to 15
 
-    legServos[0].attachPins(0, 1, &servoI2C);
+    //legServos[0].attachPins(0, 1, &servoI2C);
+    legServos[0].attachPins(25, 13);
     legServos[0].attachKinematics(legKin[0]);
 
-    legServos[1].attachPins(2, 3, &servoI2C);
+    //legServos[1].attachPins(2, 3, &servoI2C);
+    legServos[1].attachPins(26, 27);
     legServos[1].attachKinematics(legKin[1]);
 
-    legServos[2].attachPins(4, 5, &servoI2C);
+    //legServos[2].attachPins(4, 5, &servoI2C);
+    legServos[2].attachPins(18, 19);
     legServos[2].attachKinematics(legKin[2]);
 
-    //legServos[3].attachPins(10, 11, &servoI2C);
+    //legServos[3].attachPins(8, 9, &servoI2C);
     legServos[3].attachPins(16, 17);
     legServos[3].attachKinematics(legKin[3]);
 
     // Servos Calibration and limits
 
-    for (int i=0; i<NUM_LEGS; i++) {
+    // 0 = FR
+    // 1 = RR
+    // 2 = FL
+    // 3 = RL
+
+    // Adapter setup
+    /*
+    for (int i=1; i<NUM_LEGS; i++) {
         legServos[i].calibrateServo(-90, 520, 90, 1696, 460, 2220, true);
         legServos[i].calibrateServo(-90, 2140, 90, 988, 460, 2220, false);
-
-        legServos[i].setAngleLimits(-90, 145, true);
-        legServos[i].setAngleLimits(-90, 145, false);
     }
+    */
+
+    // PWM directly in ESP32
+    for (int i=0; i<NUM_LEGS; i++) {
+        legServos[i].calibrateServo(0, 1249, 90, 1887, 460, 2220, true);
+        legServos[i].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
+    }
+
+    // Phisical limits
+
+    legServos[0].setAngleLimits(-25, 155, true);
+    legServos[0].setAngleLimits(-15, 155, false);
+
+    legServos[1].setAngleLimits(-15, 155, true);
+    legServos[1].setAngleLimits(-25, 155, false);
+
+    legServos[2].setAngleLimits(-25, 155, true);
+    legServos[2].setAngleLimits(-15, 155, false);
+
+    legServos[3].setAngleLimits(-15, 155, true);
+    legServos[3].setAngleLimits(-25, 155, false);
+
 
     // Starting position
 
     for (int i=0; i<NUM_LEGS; i++) {
-        legServos[i].moveToPoint(20,-140);
+        legServos[i].moveToAngles(90,90,false);
+        delay(1000);
     }
 
     // Get working mode:
 
     Serial.println("Working mode: ");
-    while (Serial.available() == 0) vTaskDelay(pdMS_TO_TICKS(100));
+    //while (Serial.available() == 0) vTaskDelay(pdMS_TO_TICKS(1000));
+    mode = 2;
 
     if (Serial.available() > 0) {
+
         c = Serial.read(); // read the incoming byte:
+
+        Serial.println(c);
 
         if (c == '0') mode = 0;
         else if (c == '1') mode = 1;
@@ -157,9 +190,13 @@ void setup() {
         else if (c == '3') mode = 3;
         else if (c == '4') mode = 4;
         else if (c == '5') mode = 5;
+        else if (c == '6') mode = 6;
         else mode = 0;
+
+        c = '*';
     }
-    //mode = 2;
+    
+    
 }
 
 bool movingHoritzontal=true;
@@ -189,10 +226,20 @@ int legToMove = 0;
 
 int periods = 0;
 
+bool incrMove = false;
+
+bool doAction = false;
+
 void loop() {
 
-    //vTaskDelay(pdMS_TO_TICKS(5000));
-   
+    if (mode == 6) {
+        for (int i=0; i<NUM_LEGS; i++) {
+            legServos[i].moveToAngles(90, 90, true);
+        }
+    }
+
+    // *****
+
     if (mode == 0) {
 
         if (stateTest && !lastStateTest) {
@@ -202,8 +249,9 @@ void loop() {
             }
             for (int i=2; i<NUM_LEGS; i++) {
                 legServos[i].moveToAngles(45, 90, false);
-                Serial.println("Left 90, Right 45");
+                Serial.println("Left 45, Right 90");
             }
+
         } else if (!stateTest && lastStateTest) {
             for (int i=0; i<2; i++) {
                 legServos[i].moveToAngles(45, 90, false);
@@ -211,46 +259,32 @@ void loop() {
             }
             for (int i=2; i<NUM_LEGS; i++) {
                 legServos[i].moveToAngles(90, 45, false);
-                Serial.println("Left 45, Right 90");
+                Serial.println("Left 90, Right 45");
             }
         }
-        lastStateTest = stateTest;
 
-        //vTaskDelay(pdMS_TO_TICKS(3000));
-        //stateTest = !stateTest;
-
-        
-        if (Serial.available() >0 ) {
-            c = Serial.read();
-            stateTest = !stateTest;
-            Serial.print("Char: ");
-            Serial.println(c);
-        }
-        
+        vTaskDelay(pdMS_TO_TICKS(2000));
 
     }
 
     if (mode == 1) {
+
         if (stateTest) {
             for (int i=0; i<NUM_LEGS; i++) legServos[i].moveToPoint( 20, -180);
         } else {
             for (int i=0; i<NUM_LEGS; i++) legServos[i].moveToPoint( 20, -100);
         }
 
-        if (Serial.available() > 0)  {
-            c = Serial.read();
-            stateTest = !stateTest;
-        }
     }
 
     if (mode == 2) {
-        
+      
         for (int i=0; i<2; i++) {
             destinationPoint[i] = sequence[i].calcNextPoint();
             legServos[i].moveToPoint(destinationPoint[i]);
         }
 
-        if ( (periods *  PERIOD_CALC) > ( 10000 / (int)generalVelocity )) {
+        if ( periods > 26 ){
             for (int i=2; i<4; i++) {
                 destinationPoint[i] = sequence[i].calcNextPoint();
                 legServos[i].moveToPoint(destinationPoint[i]);
@@ -260,46 +294,19 @@ void loop() {
     }
 
     if (mode == 3) {
-        /*
-        resultMovement = legServosFrontR.moveToPoint(positionX, positionY);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        Serial.print(positionX);
-        Serial.print(" , ");
-        Serial.println(positionY);
-
-        if (movingHoritzontal) {
-
-            if (resultMovement) {
-                positionX += horitzontalDirection*10;
-            } else {
-                horitzontalDirection *= -1;
-                movingHoritzontal = !movingHoritzontal;
-            }
-
-        } else if (!movingHoritzontal) {
-
-            if (resultMovement) {
-                positionY += verticalDirection*10;
-            } else {
-                verticalDirection *= -1;
-                movingHoritzontal = !movingHoritzontal;
-            }
-
-        }
-        */
+    
 
     }
 
     if (mode == 4) {
 
-        if (Serial.available() > 0) {
-            char c = Serial.read(); // read the incoming byte:
 
-            // 0 = FR
-            // 1 = RR
-            // 2 = FL
-            // 3 = RL
+        // 0 = FR
+        // 1 = RR
+        // 2 = FL
+        // 3 = RL
+
+        if (doAction) {
 
             if (c == 't') {
                 legToMove = 0;
@@ -325,64 +332,145 @@ void loop() {
             }
             else if (c == '3') { 
                 modePosition = false;
-                Serial.println("Reset 0 - 45 degrees");
-                angleLeft = 0;
+                Serial.println("3 - Reset 90 - 45 degrees");
+                angleLeft = 90;
                 angleRight = 45;
 
-                position = legServos[legToMove].contactPoint();
-                positionX = position.x;
-                positionY = position.y;
-                movementOk = legServos[legToMove].moveToAngles(angleLeft, angleRight);
+                //movementOk = legServos[legToMove].moveToAngles(angleLeft, angleRight);
+                for (int i=0; i<2; i++) movementOk = legServos[i].moveToAngles(angleLeft, angleRight);
+                for (int i=2; i<NUM_LEGS; i++) movementOk = legServos[i].moveToAngles(angleRight, angleLeft);
+
+                for (int i=0; i<NUM_LEGS; i++) {
+
+                        Serial.print ("Servo ");
+                        Serial.print (i);
+                        Serial.print (": ");
+                        legServos[i].printPointAngle();
+                }
+
+
             } 
 
             else if (c == '4') { 
                 modePosition = false;
-                Serial.println("Reset 45 - 0 degrees");
+                Serial.println("4- Reset 45 - 90 degrees");
                 angleLeft = 45;
-                angleRight = 0;
-                
-                position = legServos[legToMove].contactPoint();
-                positionX = position.x;
-                positionY = position.y;
-                movementOk = legServos[legToMove].moveToAngles(angleLeft, angleRight);
+                angleRight = 90;
+
+                //movementOk = legServos[legToMove].moveToAngles(angleLeft, angleRight);
+                for (int i=0; i<2; i++) movementOk = legServos[i].moveToAngles(angleLeft, angleRight);
+                for (int i=2; i<NUM_LEGS; i++) movementOk = legServos[i].moveToAngles(angleRight, angleLeft);
+
             }
+
+            else if (c == '5') { 
+                modePosition = true;
+                Serial.println("Move all to same position 1");
+
+                for (int i=0; i<2; i++) movementOk = legServos[i].moveToPoint(0, -120);
+
+                for (int i=2; i<NUM_LEGS; i++) movementOk = legServos[i].moveToPoint(R2L(0), -120);
+
+                for (int i=0; i<NUM_LEGS; i++) {
+                    
+                        Serial.print ("Servo ");
+                        Serial.print (i);
+                        Serial.print (": ");
+                        legServos[i].printPointAngle();
+                }
+
+
+            } 
+
+            else if (c == '6') { 
+                modePosition = true;
+                Serial.println("Move all to same position 2");
+
+                for (int i=0; i<2; i++) movementOk = legServos[i].moveToPoint(40, -140);
+
+                for (int i=2; i<NUM_LEGS; i++) movementOk = legServos[i].moveToPoint(R2L(40), -140);
+
+                for (int i=0; i<NUM_LEGS; i++) {
+                    
+                        Serial.print ("Servo ");
+                        Serial.print (i);
+                        Serial.print (": ");
+                        legServos[i].printPointAngle();
+                }
+
+            } 
+
+
 
             if (modePosition) {
                 incrementX = 0.0;
                 incrementY = 0.0;
 
-                if (c == 'w')      incrementY = increment;
-                else if (c == 's') incrementY = -increment;
-                else if (c == 'd') incrementX = increment;
-                else if (c == 'a') incrementX = -increment;
+                if (c == 'w')      {incrementY = increment; incrMove = true;}
+                else if (c == 's') {incrementY = -increment; incrMove = true;}
+                else if (c == 'd') {incrementX = increment; incrMove = true;}
+                else if (c == 'a') {incrementX = -increment; incrMove = true;}
 
-                movementOk = legServos[legToMove].relativeMovePoint(incrementX, incrementY);
-                angleLeft = legServos[legToMove].leftAngle(); 
-                angleRight = legServos[legToMove].rightAngle();
+                if (incrMove) {
+                    //movementOk = legServos[legToMove].relativeMovePoint(incrementX, incrementY); 
+
+                    for (int i=0; i<2; i++) movementOk = legServos[i].relativeMovePoint(incrementX, incrementY); 
+                    for (int i=2; i<NUM_LEGS; i++) movementOk = legServos[i].relativeMovePoint(-incrementX, incrementY); 
+
+                    for (int i=0; i<NUM_LEGS; i++)  {
+                        Serial.print ("Servo ");
+                        Serial.print (i);
+                        Serial.print (": ");
+                        legServos[i].printPointAngle();
+                    }
+
+
+
+
+                    incrMove = false;
+                }
 
             } else {
                 incrementAngleLeft = 0.0;
                 incrementAngleRight = 0.0;
 
-                if (c == 'w')      incrementAngleLeft = increment;
-                else if (c == 's') incrementAngleLeft = -increment;
-                else if (c == 'd') incrementAngleRight= increment;
-                else if (c == 'a') incrementAngleRight= -increment;
+                if (c == 'w')      {incrementAngleLeft = increment; incrMove = true;}
+                else if (c == 's') {incrementAngleLeft = -increment; incrMove = true;}
+                else if (c == 'd') {incrementAngleRight= increment; incrMove = true;}
+                else if (c == 'a') {incrementAngleRight= -increment; incrMove = true;}
 
-                movementOk = legServos[legToMove].relativeMoveToAngles(incrementAngleLeft, incrementAngleRight);
-                positionX = legServos[legToMove].xContactPoint(); 
-                positionY = legServos[legToMove].yContactPoint(); 
+                if (incrMove) { 
+                    Serial.println("Before incremental: ");
+                    legServos[legToMove].printPointAngle();
+                    movementOk = legServos[legToMove].relativeMoveToAngles(incrementAngleLeft, incrementAngleRight); 
+                    Serial.println(legServos[legToMove].leftAngle());
+                    Serial.println("After incremental: ");
+                    legServos[legToMove].printPointAngle();
+
+                    incrMove=false;
+                }
+
             }
 
-            legServos[legToMove].printPointAngle();
-            legServos[legToMove].printPointAngle();
+            //legServos[legToMove].printPointAngle();
+            doAction = false;
             
         }
 
     }
 
+    
     vTaskDelay(pdMS_TO_TICKS(PERIOD_CALC));
     periods++;
+
+    if (Serial.available() > 0) {
+        c = Serial.read(); // read the incoming byte:
+        //Serial.println(c);
+        lastStateTest = stateTest;  
+        stateTest = !stateTest;
+
+        doAction = true;
+    }
 
  }
 
