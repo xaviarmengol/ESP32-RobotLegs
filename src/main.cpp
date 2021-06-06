@@ -150,6 +150,22 @@ void setup() {
         legServos[i].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
     }
 
+    legServos[0].calibrateServo(0, 1319, 90, 1951, 460, 2220, true);
+    legServos[0].calibrateServo(0, 1790, 90, 1137, 460, 2220, false);
+
+    legServos[1].calibrateServo(0, 1247, 90, 1881, 460, 2220, true);
+    legServos[1].calibrateServo(0, 1779, 90, 1142, 460, 2220, false);
+
+    legServos[2].calibrateServo(0, 1300, 90, 1921, 460, 2220, true);
+
+    /// CALIBRACIO EN CAMI ////////////////////////////////////////////////////////////////////
+
+    legServos[2].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
+
+    legServos[3].calibrateServo(0, 1249, 90, 1887, 460, 2220, true);
+    legServos[3].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
+
+
     // Phisical limits
 
     legServos[0].setAngleLimits(-25, 155, true);
@@ -176,7 +192,7 @@ void setup() {
 
     Serial.println("Working mode: ");
     //while (Serial.available() == 0) vTaskDelay(pdMS_TO_TICKS(1000));
-    mode = 2;
+    mode = 7;
 
     if (Serial.available() > 0) {
 
@@ -227,8 +243,12 @@ int legToMove = 0;
 int periods = 0;
 
 bool incrMove = false;
-
 bool doAction = false;
+
+double microsServo = 1500;
+int servoToMove = 0;
+double servoIncrement = 2.0;
+bool moveMicros = false;
 
 void loop() {
 
@@ -238,32 +258,95 @@ void loop() {
         }
     }
 
-    // *****
+    if (mode == 7) {
+
+        if (doAction) {
+
+            if (c == '0') servoToMove = 0;
+            else if (c == '1') servoToMove = 1;
+            else if (c == '2') servoToMove = 2;
+            else if (c == '3') servoToMove = 3;
+            else if (c == '4') servoToMove = 4;
+            else if (c == '5') servoToMove = 5;
+            else if (c == '6') servoToMove = 6;
+            else if (c == '7') servoToMove = 7;
+            
+            if (c == 'a') {
+                microsServo += servoIncrement;
+                moveMicros = true;
+            } else if (c == 'd') {
+                microsServo -= servoIncrement;
+                moveMicros = true;
+            }
+        
+            if (moveMicros) {
+
+                if (servoToMove == 0) {
+                    legServos[0].moveServoInManualMicros(microsServo, true);
+                    legServos[0].moveServoInManualAngle(90.0, false);
+                }
+
+                if (servoToMove == 1) {
+                    legServos[0].moveServoInManualMicros(microsServo, false);
+                    legServos[0].moveServoInManualAngle(90.0, true);
+                }
+
+                if (servoToMove == 2) {
+                    legServos[1].moveServoInManualMicros(microsServo, true);
+                    legServos[1].moveServoInManualAngle(90.0, false);
+                }
+
+                if (servoToMove == 3) {
+                    legServos[1].moveServoInManualMicros(microsServo, false);
+                    legServos[1].moveServoInManualAngle(90.0, true);
+                }
+                
+                if (servoToMove == 4) {
+                    legServos[2].moveServoInManualMicros(microsServo, true);
+                    legServos[2].moveServoInManualAngle(90.0, false);
+                }
+
+                if (servoToMove == 5) {
+                    legServos[2].moveServoInManualMicros(microsServo, false);
+                    legServos[2].moveServoInManualAngle(90.0, true);
+                }
+
+                if (servoToMove == 6) {
+                    legServos[3].moveServoInManualMicros(microsServo, true);
+                    legServos[3].moveServoInManualAngle(90.0, false);
+                }
+
+                if (servoToMove == 7) {
+                    legServos[3].moveServoInManualMicros(microsServo, false);
+                    legServos[3].moveServoInManualAngle(90.0, true);
+                }
+
+                Serial.print("Servo Micros: ");
+                Serial.println(microsServo);
+            }
+
+            if (moveMicros)  { moveMicros = false; }
+            doAction = false;
+        }
+
+    }
 
     if (mode == 0) {
 
         if (stateTest && !lastStateTest) {
-            for (int i=0; i<2; i++) {
-                legServos[i].moveToAngles(90, 45, false);
-                Serial.println("Left 90, Right 45");
-            }
-            for (int i=2; i<NUM_LEGS; i++) {
-                legServos[i].moveToAngles(45, 90, false);
-                Serial.println("Left 45, Right 90");
-            }
+            legServos[0].moveToAngles(90, 0, false);
+            legServos[1].moveToAngles(0, 90, false);
+            legServos[2].moveToAngles(0, 90, false);
+            legServos[3].moveToAngles(90, 0, false);
 
         } else if (!stateTest && lastStateTest) {
-            for (int i=0; i<2; i++) {
-                legServos[i].moveToAngles(45, 90, false);
-                Serial.println("Left 45, Right 90");
-            }
-            for (int i=2; i<NUM_LEGS; i++) {
-                legServos[i].moveToAngles(90, 45, false);
-                Serial.println("Left 90, Right 45");
-            }
+            legServos[0].moveToAngles(0, 90, false);
+            legServos[1].moveToAngles(90, 0, false);
+            legServos[2].moveToAngles(90, 0, false);
+            legServos[3].moveToAngles(0, 90, false);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        //vTaskDelay(pdMS_TO_TICKS(2000));
 
     }
 

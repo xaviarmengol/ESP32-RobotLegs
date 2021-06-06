@@ -90,6 +90,20 @@ void ServosLeg::setAngleLimits(double minAngle, double maxAngle, bool isLeft) {
     _angleMax[servoNum] = maxAngle;
 }
 
+void ServosLeg::_forceServoAngle(const double angle, const bool isLeft) {
+
+    int servoNum = isLeft ? 0 : 1;
+    double microsAngle = _map_double(angle, _angleA[servoNum], _angleB[servoNum], _microsA[servoNum], _microsB[servoNum]);
+
+    if (_isI2CServo) {
+        _ptrServoI2C->writeMicroseconds(_pin[servoNum], microsAngle);
+    } else {
+        _servo[servoNum].writeMicroseconds(microsAngle);
+    }
+
+}
+
+
 bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution){
 
     bool hasSolutionServo = hasSolution;
@@ -153,6 +167,15 @@ bool ServosLeg::_moveServos(const double angleLeftDeg, const double angleRightDe
 void ServosLeg::printPointAngle() {
     _kinematics->printContactPointAndAngles();
     Serial.println(" M(" + String(_micros[0]) + "," + String(_micros[1]) + ")");
+}
+
+void ServosLeg::moveServoInManualMicros(const double micros, bool isLeft) {
+    int servoNum = isLeft ? 0 : 1;
+    _servo[servoNum].writeMicroseconds(static_cast<int>(micros));
+}
+
+void ServosLeg::moveServoInManualAngle(const double angle, bool isLeft) {
+    _forceServoAngle(angle, isLeft);    
 }
 
 double ServosLeg::xContactPoint() {

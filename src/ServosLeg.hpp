@@ -36,6 +36,8 @@ private:
 
 
     bool _moveServos(const double angleLeftDeg, const double angleRightDeg, const bool hasSolution);
+    void _forceServoAngle(const double angle, const bool isLeft);
+
     double _map_double(double x, double in_min, double in_max, double out_min, double out_max);
 
 
@@ -51,6 +53,9 @@ public:
     void calibrateServo(double angleA, double microsA, double angleB, double microsB, double minMicros, double maxMicros, bool isLeft);
     void setAngleLimits(double minAngle, double maxAngle, bool isLeft);
     void printPointAngle();
+
+    void moveServoInManualMicros(const double micros, bool isLeft);
+    void moveServoInManualAngle(const double angle, bool isLeft);
 
     double xContactPoint();
     double yContactPoint();
