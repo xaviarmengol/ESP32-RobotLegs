@@ -2,7 +2,8 @@
 //#include "CircleCircleIntersection.hpp"
 #include "Point.hpp"
 
-constexpr int MAX_POINTS = 10;
+constexpr int MAX_PATH_POINTS = 10;
+constexpr int MAX_CALC_POINTS = 100;
 constexpr double DELTA_DIST = 0.5; // To avoid rounding errors comparing doubles
 
 //X -> mm
@@ -18,26 +19,51 @@ private:
 
     int _stepsInCurrentSegment = 0;
 
-    double _pathPoints[3][MAX_POINTS]; // X, Y, Vel
-    int _typePathPoint[MAX_POINTS];
+    double _pathPoints[3][MAX_PATH_POINTS]; // X, Y, Vel
+    int _typePathPoint[MAX_PATH_POINTS];
     int _numPathPoints = 0;
     
     void _calcSegmentDeltaMovements();
     int _nextPathPoint(int currentPoint);
 
+    Vector2 _sequence[MAX_CALC_POINTS];
+    int _numCalculatedPoints = 0;
+
 
 public:
     PathGenerator();
     PathGenerator(int period);
-    PathGenerator(const PathGenerator& originPath, bool reverseX = false);
+    //PathGenerator(const PathGenerator& originPath, bool reverseX = false);
     ~PathGenerator();
     bool addPathPoint(double x, double y, double v, int type = 0);
 
     // Calc the next Point every Period.
-    Vector2 calcNextPoint();
+    Vector2 calcNextPoint(bool& sequenceFinished);
     void setStartingPathPoint(int startingPathPoint);
-    
+
+    bool createSequence();
+    bool getSequencePoint();
 };
+
+bool PathGenerator::createSequence() {
+
+    bool endOfSequence = false;
+
+    _numCalculatedPoints = 0;
+
+    while (!endOfSequence && (_numCalculatedPoints<MAX_CALC_POINTS)) {
+        _sequence[_numCalculatedPoints] = calcNextPoint(endOfSequence);
+        _numCalculatedPoints++;
+    }
+
+    // We return true if the end of sequence has been reached.
+    return(endOfSequence);
+}
+
+
+
+
+
 
 PathGenerator::PathGenerator() {
     _periodMs = 100;
@@ -47,6 +73,7 @@ PathGenerator::PathGenerator(int periodMs) {
     _periodMs = periodMs;
 }
 
+/*
 PathGenerator::PathGenerator(const PathGenerator& originPath, bool reverseX) {
     _periodMs = originPath._periodMs;
     _currentPathPoint = originPath._currentPathPoint;
@@ -63,6 +90,7 @@ PathGenerator::PathGenerator(const PathGenerator& originPath, bool reverseX) {
         _typePathPoint[numPoint] = originPath._typePathPoint[numPoint];
     }
 }
+*/
 
 void PathGenerator::setStartingPathPoint(int startingPathPoint) {
     if (startingPathPoint < _numPathPoints) {
@@ -74,7 +102,7 @@ void PathGenerator::setStartingPathPoint(int startingPathPoint) {
 bool PathGenerator::addPathPoint(double x, double y, double v, int type) {
     bool allOk = false;
 
-    if (_numPathPoints<MAX_POINTS) {
+    if (_numPathPoints<MAX_PATH_POINTS) {
 
         _pathPoints[0][_numPathPoints] = x;
         _pathPoints[1][_numPathPoints] = y;
@@ -101,7 +129,9 @@ int PathGenerator::_nextPathPoint(const int currentPoint) {
 }
 
 
-Vector2 PathGenerator::calcNextPoint() {
+Vector2 PathGenerator::calcNextPoint(bool& sequenceFinished) {
+
+    sequenceFinished = false;
 
     if (_numPathPoints <= 1) return(Vector2(0,0)); // Minimum two path points are needed to calc the next points
 
@@ -153,17 +183,13 @@ Vector2 PathGenerator::calcNextPoint() {
     // Are we over the target point
 
     if (overX || overY || overTime) {
-        //nextPoint.x = XNextPathPoint;
-        //nextPoint.y = YNextPathPoint;
+        sequenceFinished = (nextPathPointIndex == _startingPathPoint);
+
         nextPoint = nextPathPoint;
         _currentPathPoint = nextPathPointIndex;
-        Serial.print("Number steps in sequence: --------> ");
-        Serial.println(_stepsInCurrentSegment);
         _stepsInCurrentSegment = 0;
 
     } else{
-        //nextPoint.x = XNextPoint;
-        //nextPoint.y = YNextPoint;
         nextPoint = candidateNextPoint;
     }
 

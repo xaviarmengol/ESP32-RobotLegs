@@ -122,7 +122,7 @@ void setup() {
     legServos[1].attachKinematics(legKin[1]);
 
     //legServos[2].attachPins(4, 5, &servoI2C);
-    legServos[2].attachPins(18, 19);
+    legServos[2].attachPins(4, 19);
     legServos[2].attachKinematics(legKin[2]);
 
     //legServos[3].attachPins(8, 9, &servoI2C);
@@ -157,13 +157,10 @@ void setup() {
     legServos[1].calibrateServo(0, 1779, 90, 1142, 460, 2220, false);
 
     legServos[2].calibrateServo(0, 1300, 90, 1921, 460, 2220, true);
+    legServos[2].calibrateServo(0, 1776, 90, 1135, 460, 2220, false);
 
-    /// CALIBRACIO EN CAMI ////////////////////////////////////////////////////////////////////
-
-    legServos[2].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
-
-    legServos[3].calibrateServo(0, 1249, 90, 1887, 460, 2220, true);
-    legServos[3].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
+    legServos[3].calibrateServo(0, 1247, 90, 1889, 460, 2220, true);
+    legServos[3].calibrateServo(0, 1706, 90, 1096, 460, 2220, false);
 
 
     // Phisical limits
@@ -192,7 +189,7 @@ void setup() {
 
     Serial.println("Working mode: ");
     //while (Serial.available() == 0) vTaskDelay(pdMS_TO_TICKS(1000));
-    mode = 7;
+    mode = 2;
 
     if (Serial.available() > 0) {
 
@@ -207,6 +204,7 @@ void setup() {
         else if (c == '4') mode = 4;
         else if (c == '5') mode = 5;
         else if (c == '6') mode = 6;
+        else if (c == '7') mode = 7;
         else mode = 0;
 
         c = '*';
@@ -249,6 +247,8 @@ double microsServo = 1500;
 int servoToMove = 0;
 double servoIncrement = 2.0;
 bool moveMicros = false;
+
+bool endOfSequence = false;
 
 void loop() {
 
@@ -363,13 +363,13 @@ void loop() {
     if (mode == 2) {
       
         for (int i=0; i<2; i++) {
-            destinationPoint[i] = sequence[i].calcNextPoint();
+            destinationPoint[i] = sequence[i].calcNextPoint(endOfSequence);
             legServos[i].moveToPoint(destinationPoint[i]);
         }
 
         if ( periods > 26 ){
             for (int i=2; i<4; i++) {
-                destinationPoint[i] = sequence[i].calcNextPoint();
+                destinationPoint[i] = sequence[i].calcNextPoint(endOfSequence);
                 legServos[i].moveToPoint(destinationPoint[i]);
             }
         }
