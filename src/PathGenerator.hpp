@@ -42,7 +42,8 @@ public:
     void setStartingPathPoint(int startingPathPoint);
 
     bool createSequence();
-    bool getSequencePoint();
+    Vector2 getSequencePoint(int numPoint);
+    int getTotalCalculatedPoints();
 };
 
 bool PathGenerator::createSequence() {
@@ -60,9 +61,18 @@ bool PathGenerator::createSequence() {
     return(endOfSequence);
 }
 
+int PathGenerator::getTotalCalculatedPoints() {
+    return(_numCalculatedPoints);
+}
 
-
-
+Vector2 PathGenerator::getSequencePoint(int numPoint) {
+    if (numPoint < _numCalculatedPoints && numPoint >= 0) {
+        return (_sequence[numPoint]);
+    } else {
+        Serial.println("Error: Index out of sequence scope");
+        while (true) {}
+    }
+}
 
 
 PathGenerator::PathGenerator() {

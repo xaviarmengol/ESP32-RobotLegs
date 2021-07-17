@@ -28,6 +28,9 @@ Kinematics legKin[NUM_LEGS];
 ServosLeg legServos[NUM_LEGS];
 PathGenerator sequence[NUM_LEGS];
 
+PathGenerator sequencePreCalc;
+int totalPointsSequencePreCalc;
+
 Adafruit_PWMServoDriver servoI2C = Adafruit_PWMServoDriver();
 
 bool stateTest=true;
@@ -52,6 +55,8 @@ void setup() {
         legKin[i] = std::make_shared<ExtendedLegKinematics>(extKin[i]);
         sequence[i] = PathGenerator(PERIOD_CALC);
     }
+
+    sequencePreCalc = PathGenerator(PERIOD_CALC);
 
     // Start I2C module
 
@@ -100,6 +105,14 @@ void setup() {
     sequence[3].addPathPoint(R2L(backToFront - (fordwardDist/2.0)), height + extraLift, velCommingBack);
     sequence[3].setStartingPathPoint(1);
 
+    // Sequence PRECALC RIGHT
+
+    sequencePreCalc.addPathPoint(frontToBack, height, velWalking);
+    sequencePreCalc.addPathPoint(frontToBack + fordwardDist, height, velCommingBack);
+    sequencePreCalc.addPathPoint(frontToBack + (fordwardDist / 2.0), height + extraLift, velCommingBack);
+    sequencePreCalc.setStartingPathPoint(0);
+
+
     // Define geometry
 
     legKin[0]->defineGeometry(DIST_LEGS, 73.0, 80.0, 0.0, 73.0, 80.0, 33.0 + 3.0);
@@ -145,10 +158,6 @@ void setup() {
     */
 
     // PWM directly in ESP32
-    for (int i=0; i<NUM_LEGS; i++) {
-        legServos[i].calibrateServo(0, 1249, 90, 1887, 460, 2220, true);
-        legServos[i].calibrateServo(0, 1720, 90, 1109, 460, 2220, false);
-    }
 
     legServos[0].calibrateServo(0, 1319, 90, 1951, 460, 2220, true);
     legServos[0].calibrateServo(0, 1790, 90, 1137, 460, 2220, false);
@@ -156,7 +165,7 @@ void setup() {
     legServos[1].calibrateServo(0, 1247, 90, 1881, 460, 2220, true);
     legServos[1].calibrateServo(0, 1779, 90, 1142, 460, 2220, false);
 
-    legServos[2].calibrateServo(0, 1300, 90, 1921, 460, 2220, true);
+    legServos[2].calibrateServo(0, 1214, 90, 1864, 460, 2220, true);
     legServos[2].calibrateServo(0, 1776, 90, 1135, 460, 2220, false);
 
     legServos[3].calibrateServo(0, 1247, 90, 1889, 460, 2220, true);
@@ -185,11 +194,27 @@ void setup() {
         delay(1000);
     }
 
+    // Create sequences PRECALCULATED
+
+    if (!sequencePreCalc.createSequence()) {Serial.println("Error creating sequence. Not enough space");}
+    totalPointsSequencePreCalc = sequencePreCalc.getTotalCalculatedPoints();
+    Serial.println(totalPointsSequencePreCalc);
+
+    for (int i=0; i<NUM_LEGS; i++) {
+            if (!sequence[i].createSequence()) {Serial.println("Error creating sequence. Not enough space");}
+
+            if (i==0 || sequence[i].getTotalCalculatedPoints() < totalPointsSequencePreCalc) {
+                totalPointsSequencePreCalc = sequence[i].getTotalCalculatedPoints();
+            }
+
+            Serial.println(sequence[i].getTotalCalculatedPoints());
+    }
+
     // Get working mode:
 
     Serial.println("Working mode: ");
     //while (Serial.available() == 0) vTaskDelay(pdMS_TO_TICKS(1000));
-    mode = 2;
+    mode = 9;
 
     if (Serial.available() > 0) {
 
@@ -250,7 +275,37 @@ bool moveMicros = false;
 
 bool endOfSequence = false;
 
+int sideOffset=0;
+
 void loop() {
+
+    if (mode == 9) {
+        for (int i=0; i<NUM_LEGS; i++) {
+
+            if (i<2) {
+                sideOffset = totalPointsSequencePreCalc / 2;
+            } else {
+                sideOffset = 0;
+            }
+
+            destinationPoint[i] = sequence[i].getSequencePoint((periods + sideOffset) % totalPointsSequencePreCalc );
+            legServos[i].moveToPoint(destinationPoint[i]);
+        }
+    }
+
+    if (mode == 8) {
+        for (int i=0; i<NUM_LEGS; i++) {
+            destinationPoint[i] = sequencePreCalc.getSequencePoint(periods % totalPointsSequencePreCalc);
+            legServos[i].moveToPoint(destinationPoint[i]);
+    /*
+            Serial.print("Point: x=");
+            Serial.print(destinationPoint[i].x);
+            Serial.print(" y=");
+            Serial.println(destinationPoint[i].y);
+    */
+
+        }
+    }
 
     if (mode == 6) {
         for (int i=0; i<NUM_LEGS; i++) {
