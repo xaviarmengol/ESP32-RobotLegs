@@ -28,7 +28,6 @@ Kinematics legKin[NUM_LEGS];
 ServosLeg legServos[NUM_LEGS];
 PathGenerator sequence[NUM_LEGS];
 
-PathGenerator sequencePreCalc;
 int totalPointsSequencePreCalc;
 
 Adafruit_PWMServoDriver servoI2C = Adafruit_PWMServoDriver();
@@ -56,7 +55,6 @@ void setup() {
         sequence[i] = PathGenerator(PERIOD_CALC);
     }
 
-    sequencePreCalc = PathGenerator(PERIOD_CALC);
 
     // Start I2C module
 
@@ -64,53 +62,52 @@ void setup() {
     servoI2C.setOscillatorFrequency(27000000);
     servoI2C.setPWMFreq(50);  // Analog servos run at ~50 Hz updates
 
+
     // Create walking sequence
     
-    double fordwardDist = 160.0;
+    double fordwardDistLeft = 160.0;
+    double fordwardDistRight = 160.0;
+
     double height = -140;
     double extraLift = 35;
 
-    double velWalking = 10.0 * generalVelocity;
-    double velCommingBack = 40.0 * generalVelocity;
+    double velWalkingRight = 10.0 * generalVelocity;
+    double velCommingBackRight = 40.0 * generalVelocity;
+
+    double velWalkingLeft = velWalkingRight * 0.6;
+    double velCommingBackLeft = velCommingBackRight * 0.6;
 
     double frontToBack = -80.0;
     double backToFront = 80.0 + DIST_LEGS;
 
     // FR Front Right = 0
 
-    sequence[0].addPathPoint(frontToBack, height, velWalking);
-    sequence[0].addPathPoint(frontToBack + fordwardDist, height, velCommingBack);
-    sequence[0].addPathPoint(frontToBack + (fordwardDist / 2.0), height + extraLift, velCommingBack);
+    sequence[0].addPathPoint(frontToBack, height, velWalkingRight);
+    sequence[0].addPathPoint(frontToBack + fordwardDistRight, height, velCommingBackRight);
+    sequence[0].addPathPoint(frontToBack + (fordwardDistRight / 2.0), height + extraLift, velCommingBackRight);
     sequence[0].setStartingPathPoint(0);
 
     // RR Rear Right = 1
 
-    sequence[1].addPathPoint(backToFront - fordwardDist, height, velWalking);
-    sequence[1].addPathPoint(backToFront, height, velCommingBack);
-    sequence[1].addPathPoint(backToFront - (fordwardDist/2.0), height + extraLift, velCommingBack);
+    sequence[1].addPathPoint(backToFront - fordwardDistRight, height, velWalkingRight);
+    sequence[1].addPathPoint(backToFront, height, velCommingBackRight);
+    sequence[1].addPathPoint(backToFront - (fordwardDistRight/2.0), height + extraLift, velCommingBackRight);
     sequence[1].setStartingPathPoint(1);
 
     // FL Front Left = 2
 
 
-    sequence[2].addPathPoint(R2L(frontToBack), height, velWalking);
-    sequence[2].addPathPoint(R2L(frontToBack + fordwardDist), height, velCommingBack);
-    sequence[2].addPathPoint(R2L(frontToBack + (fordwardDist / 2.0)), height + extraLift, velCommingBack);
+    sequence[2].addPathPoint(R2L(frontToBack), height, velWalkingLeft);
+    sequence[2].addPathPoint(R2L(frontToBack + fordwardDistLeft), height, velCommingBackLeft);
+    sequence[2].addPathPoint(R2L(frontToBack + (fordwardDistLeft / 2.0)), height + extraLift, velCommingBackLeft);
     sequence[2].setStartingPathPoint(0);
     
     // RL Rear Left = 3
 
-    sequence[3].addPathPoint(R2L(backToFront - fordwardDist), height, velWalking);
-    sequence[3].addPathPoint(R2L(backToFront), height, velCommingBack);
-    sequence[3].addPathPoint(R2L(backToFront - (fordwardDist/2.0)), height + extraLift, velCommingBack);
+    sequence[3].addPathPoint(R2L(backToFront - fordwardDistLeft), height, velWalkingLeft);
+    sequence[3].addPathPoint(R2L(backToFront), height, velCommingBackLeft);
+    sequence[3].addPathPoint(R2L(backToFront - (fordwardDistLeft/2.0)), height + extraLift, velCommingBackLeft);
     sequence[3].setStartingPathPoint(1);
-
-    // Sequence PRECALC RIGHT
-
-    sequencePreCalc.addPathPoint(frontToBack, height, velWalking);
-    sequencePreCalc.addPathPoint(frontToBack + fordwardDist, height, velCommingBack);
-    sequencePreCalc.addPathPoint(frontToBack + (fordwardDist / 2.0), height + extraLift, velCommingBack);
-    sequencePreCalc.setStartingPathPoint(0);
 
 
     // Define geometry
@@ -196,9 +193,6 @@ void setup() {
 
     // Create sequences PRECALCULATED
 
-    if (!sequencePreCalc.createSequence()) {Serial.println("Error creating sequence. Not enough space");}
-    totalPointsSequencePreCalc = sequencePreCalc.getTotalCalculatedPoints();
-    Serial.println(totalPointsSequencePreCalc);
 
     for (int i=0; i<NUM_LEGS; i++) {
             if (!sequence[i].createSequence()) {Serial.println("Error creating sequence. Not enough space");}
@@ -279,7 +273,13 @@ int sideOffset=0;
 
 void loop() {
 
+    if (mode == 3) {
+
+    } 
+
     if (mode == 9) {
+        // Walking mode with precalc sequence
+
         for (int i=0; i<NUM_LEGS; i++) {
 
             if (i<2) {
@@ -288,32 +288,21 @@ void loop() {
                 sideOffset = 0;
             }
 
-            destinationPoint[i] = sequence[i].getSequencePoint((periods + sideOffset) % totalPointsSequencePreCalc );
+            destinationPoint[i] = sequence[i].getSequencePoint((periods + sideOffset) % sequence[i].getTotalCalculatedPoints() );
             legServos[i].moveToPoint(destinationPoint[i]);
-        }
-    }
-
-    if (mode == 8) {
-        for (int i=0; i<NUM_LEGS; i++) {
-            destinationPoint[i] = sequencePreCalc.getSequencePoint(periods % totalPointsSequencePreCalc);
-            legServos[i].moveToPoint(destinationPoint[i]);
-    /*
-            Serial.print("Point: x=");
-            Serial.print(destinationPoint[i].x);
-            Serial.print(" y=");
-            Serial.println(destinationPoint[i].y);
-    */
-
         }
     }
 
     if (mode == 6) {
+        // Test mode all angles 90
         for (int i=0; i<NUM_LEGS; i++) {
             legServos[i].moveToAngles(90, 90, true);
         }
     }
 
     if (mode == 7) {
+
+        // Calibration Mode. We can discover the Micros equivalent to 0 (horitzontal pointing outside) and 90 (pointing to the floor)
 
         if (doAction) {
 
@@ -401,7 +390,6 @@ void loop() {
             legServos[3].moveToAngles(0, 90, false);
         }
 
-        //vTaskDelay(pdMS_TO_TICKS(2000));
 
     }
 
@@ -428,11 +416,6 @@ void loop() {
                 legServos[i].moveToPoint(destinationPoint[i]);
             }
         }
-
-    }
-
-    if (mode == 3) {
-    
 
     }
 
